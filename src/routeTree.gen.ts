@@ -13,35 +13,85 @@ import { createFileRoute } from '@tanstack/react-router'
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
+import { Route as UnauthorizedImport } from './routes/_unauthorized'
+import { Route as AuthenticatedImport } from './routes/_authenticated'
 
 // Create Virtual Routes
 
-const IndexLazyImport = createFileRoute('/')()
+const AuthenticatedIndexLazyImport = createFileRoute('/_authenticated/')()
+const UnauthorizedLoginLazyImport = createFileRoute('/_unauthorized/login')()
 
 // Create/Update Routes
 
-const IndexLazyRoute = IndexLazyImport.update({
-  path: '/',
+const UnauthorizedRoute = UnauthorizedImport.update({
+  id: '/_unauthorized',
   getParentRoute: () => rootRoute,
-} as any).lazy(() => import('./routes/index.lazy').then((d) => d.Route))
+} as any)
+
+const AuthenticatedRoute = AuthenticatedImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const AuthenticatedIndexLazyRoute = AuthenticatedIndexLazyImport.update({
+  path: '/',
+  getParentRoute: () => AuthenticatedRoute,
+} as any).lazy(() =>
+  import('./routes/_authenticated/index.lazy').then((d) => d.Route),
+)
+
+const UnauthorizedLoginLazyRoute = UnauthorizedLoginLazyImport.update({
+  path: '/login',
+  getParentRoute: () => UnauthorizedRoute,
+} as any).lazy(() =>
+  import('./routes/_unauthorized/login.lazy').then((d) => d.Route),
+)
 
 // Populate the FileRoutesByPath interface
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof AuthenticatedImport
+      parentRoute: typeof rootRoute
+    }
+    '/_unauthorized': {
+      id: '/_unauthorized'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof UnauthorizedImport
+      parentRoute: typeof rootRoute
+    }
+    '/_unauthorized/login': {
+      id: '/_unauthorized/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof UnauthorizedLoginLazyImport
+      parentRoute: typeof UnauthorizedImport
+    }
+    '/_authenticated/': {
+      id: '/_authenticated/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexLazyImport
-      parentRoute: typeof rootRoute
+      preLoaderRoute: typeof AuthenticatedIndexLazyImport
+      parentRoute: typeof AuthenticatedImport
     }
   }
 }
 
 // Create and export the route tree
 
-export const routeTree = rootRoute.addChildren({ IndexLazyRoute })
+export const routeTree = rootRoute.addChildren({
+  AuthenticatedRoute: AuthenticatedRoute.addChildren({
+    AuthenticatedIndexLazyRoute,
+  }),
+  UnauthorizedRoute: UnauthorizedRoute.addChildren({
+    UnauthorizedLoginLazyRoute,
+  }),
+})
 
 /* prettier-ignore-end */
 
@@ -51,11 +101,29 @@ export const routeTree = rootRoute.addChildren({ IndexLazyRoute })
     "__root__": {
       "filePath": "__root.tsx",
       "children": [
-        "/"
+        "/_authenticated",
+        "/_unauthorized"
       ]
     },
-    "/": {
-      "filePath": "index.lazy.tsx"
+    "/_authenticated": {
+      "filePath": "_authenticated.tsx",
+      "children": [
+        "/_authenticated/"
+      ]
+    },
+    "/_unauthorized": {
+      "filePath": "_unauthorized.tsx",
+      "children": [
+        "/_unauthorized/login"
+      ]
+    },
+    "/_unauthorized/login": {
+      "filePath": "_unauthorized/login.lazy.tsx",
+      "parent": "/_unauthorized"
+    },
+    "/_authenticated/": {
+      "filePath": "_authenticated/index.lazy.tsx",
+      "parent": "/_authenticated"
     }
   }
 }
