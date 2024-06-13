@@ -1,4 +1,4 @@
-import { Login } from "@/components/component/login";
+import { Login } from "@/components/login";
 import { createLazyFileRoute } from "@tanstack/react-router";
 
 export const Route = createLazyFileRoute("/_unauthorized/login")({

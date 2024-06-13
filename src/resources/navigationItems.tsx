@@ -3,47 +3,58 @@ import {
   LineChartIcon,
   Package2Icon,
   PackageIcon,
-  ShoppingCartIcon,
+  PcCaseIcon,
   UsersIcon,
 } from "lucide-react";
 
-export const navItems = [
+export const casesNavItems = [
   {
     to: "/",
     icon: <HomeIcon className="w-4 h-4" />,
     label: "Dashboard",
   },
   {
-    to: "/",
-    icon: <ShoppingCartIcon className="w-4 h-4" />,
-    label: "Orders",
-    badge: 6,
-  },
-  {
-    to: "/",
-    icon: <PackageIcon className="w-4 h-4" />,
-    label: "Products",
-    active: true,
-  },
-  {
-    to: "/",
+    to: "/students",
     icon: <UsersIcon className="w-4 h-4" />,
-    label: "Customers",
+    label: "Students",
   },
   {
-    to: "/",
-    icon: <LineChartIcon className="w-4 h-4" />,
-    label: "Analytics",
+    to: "/register",
+    icon: <UsersIcon className="w-4 h-4" />,
+    label: "Register",
   },
 ];
 
-export const navItemsMobile = [
+export const managementNavItems = [
   {
-    to: "/",
-    icon: <Package2Icon className="w-6 h-6" />,
-    label: <span className="sr-only">Acme Inc</span>,
-    className: "flex items-center gap-2 text-lg font-semibold",
+    to: "/cases/all",
+    icon: <PackageIcon className="w-4 h-4" />,
+    label: "All Cases",
   },
+  {
+    to: "/cases/new",
+    icon: <Package2Icon className="w-4 h-4" />,
+    label: "New Cases",
+  },
+  {
+    to: "/cases/pending",
+    icon: <PcCaseIcon className="w-4 h-4" />,
+    label: "Pending Cases",
+    badge: 6,
+  },
+  {
+    to: "/cases/closed",
+    icon: <UsersIcon className="w-4 h-4" />,
+    label: "Closed Cases",
+  },
+  {
+    to: "/cases/history",
+    icon: <LineChartIcon className="w-4 h-4" />,
+    label: "Case History",
+  },
+];
+
+export const casesNavItemsMobile = [
   {
     to: "/",
     icon: <HomeIcon className="w-5 h-5" />,
@@ -52,31 +63,54 @@ export const navItemsMobile = [
       "mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground",
   },
   {
-    to: "/",
-    icon: <ShoppingCartIcon className="w-5 h-5" />,
-    label: "Orders",
+    to: "/students",
+    icon: <UsersIcon className="w-5 h-5" />,
+    label: "Students",
+    className:
+      "mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground",
+  },
+  {
+    to: "/register",
+    icon: <UsersIcon className="w-4 h-4" />,
+    label: "Register",
+  },
+];
+
+export const managementNavItemsMobile = [
+  {
+    to: "/cases/all",
+    icon: <PackageIcon className="w-5 h-5" />,
+    label: "All Cases",
+    className:
+      "mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground",
+  },
+  {
+    to: "/cases/new",
+    icon: <Package2Icon className="w-5 h-5" />,
+    label: "New Cases",
+    className:
+      "mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground",
+  },
+  {
+    to: "/cases/pending",
+    icon: <PcCaseIcon className="w-5 h-5" />,
+    label: "Pending Cases",
     badge: 6,
     className:
       "mx-[-0.65rem] flex items-center gap-4 rounded-xl bg-muted px-3 py-2 text-foreground hover:text-foreground",
   },
   {
-    to: "/",
-    icon: <PackageIcon className="w-5 h-5" />,
-    label: "Products",
-    className:
-      "mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground",
-  },
-  {
-    to: "/",
+    to: "/cases/closed",
     icon: <UsersIcon className="w-5 h-5" />,
-    label: "Customers",
+    label: "Closed Cases",
     className:
       "mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground",
   },
+
   {
-    to: "/",
+    to: "/cases/history",
     icon: <LineChartIcon className="w-5 h-5" />,
-    label: "Analytics",
+    label: "Case History",
     className:
       "mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground",
   },

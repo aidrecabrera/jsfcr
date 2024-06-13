@@ -7,3 +7,7 @@ export async function isAuthenticated(): Promise<boolean> {
   }
   return false as boolean;
 }
+
+export async function logout() {
+  await supabase.auth.signOut();
+}
