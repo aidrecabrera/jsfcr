@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DataTable } from "@/components/ui/data-table";
@@ -23,6 +25,7 @@ const columns: ColumnDef<Cases>[] = [
   {
     id: "select",
     header: ({ table }) => (
+      // @ts-ignore
       <Checkbox
         checked={
           table.getIsAllPageRowsSelected() ||

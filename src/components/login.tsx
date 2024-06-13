@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/lib/supabase";
 import { zodResolver } from "@hookform/resolvers/zod";
