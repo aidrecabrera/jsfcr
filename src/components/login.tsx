@@ -1,10 +1,11 @@
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/lib/supabase";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Button } from "../ui/button";
+import { Button } from "./ui/button";
 import {
   Form,
   FormControl,
@@ -12,7 +13,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "../ui/form";
+} from "./ui/form";
 
 const formSchema = z.object({
   email: z.string().email(),
@@ -21,6 +22,7 @@ const formSchema = z.object({
 
 export function Login() {
   const [error, setError] = useState<Error | null>(null);
+  const navigate = useNavigate();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -33,7 +35,11 @@ export function Login() {
     if (error) {
       setError(error);
     }
-    console.log(data);
+    if (data.session !== null) {
+      navigate({
+        to: "/",
+      });
+    }
   }
   return (
     <div className="w-full h-screen lg:grid lg:grid-cols-2">
