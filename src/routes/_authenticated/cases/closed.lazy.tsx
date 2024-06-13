@@ -1,4 +1,4 @@
-import CaseCard from "@/components/composable/cases";
+import { CaseCard } from "@/components/composable/cases";
 import { listCases } from "@/services/service_case";
 import { TableType } from "@/types/types";
 import { createLazyFileRoute } from "@tanstack/react-router";
@@ -9,20 +9,26 @@ type Cases = TableType<"cases">;
 export const Route = createLazyFileRoute("/_authenticated/cases/closed")({
   component: () => {
     const [data, setData] = useState<Cases[]>([]);
-    useEffect(() => {
-      const fetchCases = async () => {
-        try {
-          const cases = await listCases({
-            case_status: "CLOSED",
-          });
-          setData(cases);
-        } catch (err) {
-          console.error(err);
-        }
-      };
 
+    const fetchCases = async () => {
+      try {
+        const cases = await listCases({
+          case_status: "CLOSED",
+        });
+        setData(cases);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    useEffect(() => {
       fetchCases();
     }, []);
+
+    const handleStatusChange = (caseId: string, newStatus: string) => {
+      fetchCases(); // Refetch all closed cases
+    };
+
     return (
       <div className="flex flex-col w-full gap-1">
         <div className="mb-4">
@@ -38,6 +44,7 @@ export const Route = createLazyFileRoute("/_authenticated/cases/closed")({
               allowClose={false}
               caseProps={item}
               key={item.case_id}
+              onStatusChange={handleStatusChange}
             />
           ))}
         </div>

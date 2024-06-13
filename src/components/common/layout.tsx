@@ -14,8 +14,8 @@ import { Link, Outlet } from "@tanstack/react-router";
 import {
   BellIcon,
   CircleUserIcon,
+  FingerprintIcon,
   MenuIcon,
-  Package2Icon,
   SearchIcon,
 } from "lucide-react";
 import { Navigation, NavigationMobile } from "./navbar";
@@ -27,8 +27,8 @@ export function Layout() {
         <div className="flex flex-col h-full max-h-screen gap-2">
           <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
             <Link className="flex items-center gap-2 font-semibold" to="/">
-              <Package2Icon className="w-6 h-6" />
-              <span className="">Acme Inc</span>
+              <FingerprintIcon className="w-6 h-6" />
+              <span className="">JCFSR</span>
             </Link>
             <Button className="w-8 h-8 ml-auto" size="icon" variant="outline">
               <BellIcon className="w-4 h-4" />

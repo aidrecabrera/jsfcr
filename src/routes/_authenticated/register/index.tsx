@@ -1,3 +1,4 @@
+import { FingerprintRegistration } from "@/components/fingerprint-registration";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
@@ -8,15 +9,19 @@ import {
   FormLabel,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { supabase } from "@/lib/supabase";
 import { createStudent } from "@/services/service_student";
 import { TableType } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createFileRoute } from "@tanstack/react-router";
+import { decode, encode } from "base64-arraybuffer";
+import { enc } from "crypto-js";
+import sha256 from "crypto-js/sha256";
 import { useForm } from "react-hook-form";
-import * as z from "zod";
+import z from "zod";
 
+// Define schema for form validation
 const formSchema = z.object({
   student_id: z.string().min(1).max(255),
   student_name: z.string().min(1).max(255),
@@ -31,10 +36,12 @@ const formSchema = z.object({
   student_municipal: z.string().min(1).max(255),
   student_barangay: z.string().min(1).max(255),
   student_region: z.string().min(1).max(255),
+  fingerprints: z.record(z.string().nullable()).optional(),
 });
 
 type TStudents = TableType<"student">;
 
+// Main component for the registration form
 export function RegistrationForm() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -52,14 +59,111 @@ export function RegistrationForm() {
       student_municipal: "",
       student_province: "",
       student_barangay: "",
+      fingerprints: {
+        "right-thumb": null,
+        "right-index": null,
+        "right-middle": null,
+        "right-ring": null,
+        "right-pinky": null,
+        "left-thumb": null,
+        "left-index": null,
+        "left-middle": null,
+        "left-ring": null,
+        "left-pinky": null,
+      },
     },
   });
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
-    // @ts-ignore
-    createStudent(values as Partial<TStudents>);
+  async function uploadFingerprintImage(
+    fileData: ArrayBuffer,
+    folder: string,
+    fileName: string
+  ) {
+    const mimeType = "image/png";
+    const fullFileName = `${folder}/${fileName}.png`;
+
+    const { data, error } = await supabase.storage
+      .from("fingerprints")
+      .upload(fullFileName, new Blob([fileData], { type: mimeType }), {
+        cacheControl: "3600",
+        upsert: false,
+      });
+
+    if (error) {
+      console.error("Error uploading file:", error);
+      return null;
+    }
+
+    return data?.path;
   }
+
+  async function saveFingerprintData(
+    values: z.infer<typeof formSchema>,
+    studentUid: number
+  ) {
+    const studentName = `${values.student_family_name}_${values.student_name}`;
+    const fingerprints = values.fingerprints || {};
+    const fingerprintUrls: Record<string, string | null> = {};
+    const fingerprintHashes: Record<string, string | null> = {};
+
+    for (const [finger, data] of Object.entries(fingerprints)) {
+      if (data) {
+        const folder = finger.startsWith("left") ? "left" : "right";
+        const fileName = `${studentName}_${finger}`;
+        const fileUrl = await uploadFingerprintImage(
+          decode(data),
+          folder,
+          fileName
+        );
+        if (fileUrl) {
+          fingerprintUrls[`img_${finger}_url`] = fileUrl;
+          fingerprintHashes[`${finger}_hash`] = sha256(data).toString(enc.Hex);
+        }
+      }
+    }
+
+    // Save URLs to student_fingerprint_images table
+    await supabase
+      .from("student_fingerprint_images")
+      .insert([{ student_uid: studentUid, ...fingerprintUrls }]);
+
+    // Save hashes to student_fingerprints table
+    await supabase
+      .from("student_fingerprints")
+      .insert([{ student_uid: studentUid, ...fingerprintHashes }]);
+  }
+
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    // Save the student basic info
+    createStudent({
+      student_id: values.student_id,
+      student_name: values.student_name,
+      student_middle_name: values.student_middle_name,
+      student_family_name: values.student_family_name,
+      student_suffix: values.student_suffix,
+      student_course: values.student_course,
+      student_year: values.student_year,
+      student_address: values.student_address,
+      student_zip_code: values.student_zip_code,
+      student_region: values.student_region,
+      student_municipal: values.student_municipal,
+      student_province: values.student_province,
+      student_barangay: values.student_barangay,
+    }).then((id) => {
+      saveFingerprintData(values, id);
+    });
+  }
+
+  const handleFileChange = (e: { target: { id: any; files: any } }) => {
+    const { id, files } = e.target;
+    if (files && files[0]) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        form.setValue(`fingerprints.${id}`, encode(reader.result as any));
+      };
+      reader.readAsArrayBuffer(files[0]);
+    }
+  };
 
   return (
     <Form {...form}>
@@ -84,7 +188,6 @@ export function RegistrationForm() {
             </FormItem>
           )}
         />
-
         <div className="flex flex-row w-full gap-4">
           <FormField
             control={form.control}
@@ -255,53 +358,9 @@ export function RegistrationForm() {
             )}
           />
         </div>
-        <Separator />
-        <Card className="w-full max-w-4xl border-0">
-          <div>
-            <div className="grid grid-cols-2 gap-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="right-thumb">Right Thumb</Label>
-                <Input id="right-thumb" placeholder="Scan right thumb" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="right-index">Right Index</Label>
-                <Input id="right-index" placeholder="Scan right index" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="right-middle">Right Middle</Label>
-                <Input id="right-middle" placeholder="Scan right middle" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="right-ring">Right Ring</Label>
-                <Input id="right-ring" placeholder="Scan right ring" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="right-pinky">Right Pinky</Label>
-                <Input id="right-pinky" placeholder="Scan right pinky" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="left-thumb">Left Thumb</Label>
-                <Input id="left-thumb" placeholder="Scan left thumb" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="left-index">Left Index</Label>
-                <Input id="left-index" placeholder="Scan left index" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="left-middle">Left Middle</Label>
-                <Input id="left-middle" placeholder="Scan left middle" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="left-ring">Left Ring</Label>
-                <Input id="left-ring" placeholder="Scan left ring" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="left-pinky">Left Pinky</Label>
-                <Input id="left-pinky" placeholder="Scan left pinky" />
-              </div>
-            </div>
-          </div>
-        </Card>
+        <div className="py-4">
+          <FingerprintRegistration handleFileChange={handleFileChange} />
+        </div>
         <div className="flex justify-end col-span-1 md:col-span-2 lg:col-span-3">
           <Button type="submit">Submit</Button>
         </div>

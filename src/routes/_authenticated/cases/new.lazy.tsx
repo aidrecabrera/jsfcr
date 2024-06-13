@@ -1,4 +1,4 @@
-import CaseCard from "@/components/composable/cases";
+import { CaseCard } from "@/components/composable/cases";
 import { listCases } from "@/services/service_case";
 import { TableType } from "@/types/types";
 import { createLazyFileRoute } from "@tanstack/react-router";
@@ -9,19 +9,32 @@ type Cases = TableType<"cases">;
 export const Route = createLazyFileRoute("/_authenticated/cases/new")({
   component: () => {
     const [data, setData] = useState<Cases[]>([]);
+
+    const fetchCases = async () => {
+      try {
+        const cases = await listCases({
+          case_status: "NEW",
+        });
+        setData(cases);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
     useEffect(() => {
-      const fetchCases = async () => {
-        try {
-          const cases = await listCases({
-            case_status: "NEW",
-          });
-          setData(cases);
-        } catch (err) {
-          console.error(err);
-        }
-      };
       fetchCases();
     }, []);
+
+    const handleStatusChange = (caseId: string, newStatus: string) => {
+      setData((prevData) =>
+        prevData.map((item) =>
+          item.case_id === parseInt(caseId)
+            ? { ...item, case_status: newStatus }
+            : item
+        )
+      );
+      fetchCases();
+    };
 
     return (
       <div className="flex flex-col w-full gap-1">
@@ -38,6 +51,7 @@ export const Route = createLazyFileRoute("/_authenticated/cases/new")({
               allowClose={true}
               caseProps={item}
               key={item.case_id}
+              onStatusChange={handleStatusChange}
             />
           ))}
         </div>

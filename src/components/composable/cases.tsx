@@ -29,25 +29,29 @@ async function updateToClosed(case_id: string) {
     .eq("case_id", case_id);
 }
 
-const CaseCard = ({
+export const CaseCard = ({
   allowPending,
   allowClose,
   caseProps,
+  onStatusChange,
 }: {
   allowPending: boolean;
   allowClose: boolean;
   caseProps: CasesProps;
+  onStatusChange: (caseId: string, newStatus: string) => void;
 }) => {
   const [caseStatus, setCaseStatus] = useState(caseProps.case_status);
 
   const handleUpdateToPending = async (case_id: string) => {
     await updateToPending(case_id);
     setCaseStatus("PENDING");
+    onStatusChange(case_id, "PENDING");
   };
 
   const handleUpdateToClosed = async (case_id: string) => {
     await updateToClosed(case_id);
     setCaseStatus("CLOSED");
+    onStatusChange(case_id, "CLOSED");
   };
 
   return (
@@ -139,5 +143,3 @@ const CaseCard = ({
     </Card>
   );
 };
-
-export default CaseCard;

@@ -7,9 +7,10 @@ export const createStudent = async (studentData: Partial<Student>) => {
   const { data, error } = await supabase
     .from("student")
     .insert(studentData)
-    .select("*");
+    .select("student_uid")
+    .single();
   if (error) throw new Error(error.message);
-  return data;
+  return data as unknown as number;
 };
 
 export const editStudent = async (

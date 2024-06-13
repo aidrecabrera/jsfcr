@@ -1,6 +1,5 @@
 import {
   HomeIcon,
-  LineChartIcon,
   Package2Icon,
   PackageIcon,
   PcCaseIcon,
@@ -40,18 +39,17 @@ export const managementNavItems = [
     to: "/cases/pending",
     icon: <PcCaseIcon className="w-4 h-4" />,
     label: "Pending Cases",
-    badge: 6,
   },
   {
     to: "/cases/closed",
     icon: <UsersIcon className="w-4 h-4" />,
     label: "Closed Cases",
   },
-  {
-    to: "/cases/history",
-    icon: <LineChartIcon className="w-4 h-4" />,
-    label: "Case History",
-  },
+  // {
+  //   to: "/cases/history",
+  //   icon: <LineChartIcon className="w-4 h-4" />,
+  //   label: "Case History",
+  // },
 ];
 
 export const casesNavItemsMobile = [
@@ -107,11 +105,11 @@ export const managementNavItemsMobile = [
       "mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground",
   },
 
-  {
-    to: "/cases/history",
-    icon: <LineChartIcon className="w-5 h-5" />,
-    label: "Case History",
-    className:
-      "mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground",
-  },
+  // {
+  //   to: "/cases/history",
+  //   icon: <LineChartIcon className="w-5 h-5" />,
+  //   label: "Case History",
+  //   className:
+  //     "mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground",
+  // },
 ];
