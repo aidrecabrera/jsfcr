@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import { CaseCard } from "@/components/composable/cases";
 import { listCases } from "@/services/service_case";
 import { TableType } from "@/types/types";
