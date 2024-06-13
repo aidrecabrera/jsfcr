@@ -6,7 +6,7 @@ export const Route = createFileRoute("/_unauthorized")({
     const isAuth = await isAuthenticated();
     if (isAuth) {
       throw redirect({
-        to: "/",
+        to: "/students",
         search: {
           redirect: location.href,
         },

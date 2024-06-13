@@ -89,20 +89,29 @@ function Dashboard() {
   }, []);
 
   return (
-    <div className="w-full">
-      <DashboardIndicators
-        totalCases={totalCases.toString()}
-        activeCases={activeCases}
-        resolvedCases={resolvedCases}
-        totalStudents={totalStudents.toString()}
-        recentCaseTitle={recentCaseTitle}
-        recentCaseDate={recentCaseDate}
-        topUploaderName={topUploaderName}
-        topUploaderCount={topUploaderCount}
-        totalSuspects={totalSuspects.toString()}
-        casesWithSuspects={casesWithSuspects}
-        totalFingerprints={totalFingerprints.toString()}
-      ></DashboardIndicators>
+    <div className="flex items-center justify-center w-full">
+      <div className="h-full bg-muted lg:block rounded-xl">
+        <div className="relative w-full h-full">
+          <img
+            alt="Image"
+            className="h-full w-full object-cover rounded-xl dark:brightness-[0.2] dark:grayscale"
+            height="1080"
+            src="https://online.jhcsc.edu.ph/img/red.jpg"
+            width="1920"
+          />
+          <div className="absolute inset-0 flex items-center justify-center bg-green-700 rounded-xl bg-opacity-65">
+            <div className="absolute top-0 left-0 flex flex-row items-center justify-center w-full h-full gap-3">
+              <h1 className="text-6xl font-bold text-center text-white text-ellipsis font-tight">
+                JH Cerilles State College
+              </h1>
+              <div className="h-16 border-2 b-r-white"></div>
+              <p className="text-6xl font-bold text-white font-tight">
+                JSFCR System
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

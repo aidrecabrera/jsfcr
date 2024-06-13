@@ -16,8 +16,6 @@ import { TableType } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createFileRoute } from "@tanstack/react-router";
 import { decode, encode } from "base64-arraybuffer";
-import { enc } from "crypto-js";
-import sha256 from "crypto-js/sha256";
 import { useForm } from "react-hook-form";
 import z from "zod";
 
@@ -94,7 +92,12 @@ export function RegistrationForm() {
       return null;
     }
 
-    return data?.path;
+    // Retrieve the public URL
+    const { data: publicData } = supabase.storage
+      .from("fingerprints")
+      .getPublicUrl(fullFileName);
+
+    return publicData?.publicUrl || null;
   }
 
   async function saveFingerprintData(
@@ -104,7 +107,6 @@ export function RegistrationForm() {
     const studentName = `${values.student_family_name}_${values.student_name}`;
     const fingerprints = values.fingerprints || {};
     const fingerprintUrls: Record<string, string | null> = {};
-    const fingerprintHashes: Record<string, string | null> = {};
 
     for (const [finger, data] of Object.entries(fingerprints)) {
       if (data) {
@@ -117,7 +119,6 @@ export function RegistrationForm() {
         );
         if (fileUrl) {
           fingerprintUrls[`img_${finger}_url`] = fileUrl;
-          fingerprintHashes[`${finger}_hash`] = sha256(data).toString(enc.Hex);
         }
       }
     }
@@ -125,17 +126,12 @@ export function RegistrationForm() {
     // Save URLs to student_fingerprint_images table
     await supabase
       .from("student_fingerprint_images")
-      .insert([{ student_uid: studentUid, ...fingerprintUrls }]);
-
-    // Save hashes to student_fingerprints table
-    await supabase
-      .from("student_fingerprints")
-      .insert([{ student_uid: studentUid, ...fingerprintHashes }]);
+      .upsert([{ student_uid: studentUid, ...fingerprintUrls }]);
   }
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    // Save the student basic info
-    createStudent({
+    // Save the student basic info and retrieve the created student ID
+    const student = await createStudent({
       student_id: values.student_id,
       student_name: values.student_name,
       student_middle_name: values.student_middle_name,
@@ -149,9 +145,9 @@ export function RegistrationForm() {
       student_municipal: values.student_municipal,
       student_province: values.student_province,
       student_barangay: values.student_barangay,
-    }).then((id) => {
-      saveFingerprintData(values, id);
     });
+
+    await saveFingerprintData(values, student.uid as number);
   }
 
   const handleFileChange = (e: { target: { id: any; files: any } }) => {

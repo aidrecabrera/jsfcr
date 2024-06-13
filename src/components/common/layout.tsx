@@ -7,7 +7,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { logout } from "@/lib/auth";
 import { Link, Outlet } from "@tanstack/react-router";
@@ -16,7 +15,6 @@ import {
   CircleUserIcon,
   FingerprintIcon,
   MenuIcon,
-  SearchIcon,
 } from "lucide-react";
 import { Navigation, NavigationMobile } from "./navbar";
 
@@ -55,18 +53,7 @@ export function Layout() {
               <NavigationMobile />
             </SheetContent>
           </Sheet>
-          <div className="flex-1 w-full">
-            <form>
-              <div className="relative">
-                <SearchIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  className="w-full pl-8 shadow-none appearance-none bg-background md:w-2/3 lg:w-1/3"
-                  placeholder="Search products..."
-                  type="search"
-                />
-              </div>
-            </form>
-          </div>
+          <div className="flex-1 w-full"></div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button className="rounded-full" size="icon" variant="secondary">
