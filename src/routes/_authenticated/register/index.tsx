@@ -8,6 +8,7 @@ import {
   FormLabel,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { createStudent } from "@/services/service_student";
 import { TableType } from "@/types/types";
@@ -58,7 +59,6 @@ export function RegistrationForm() {
     console.log(values);
     // @ts-ignore
     createStudent(values as Partial<TStudents>);
-    console.log(data, error);
   }
 
   return (
@@ -255,7 +255,53 @@ export function RegistrationForm() {
             )}
           />
         </div>
-
+        <Separator />
+        <Card className="w-full max-w-4xl border-0">
+          <div>
+            <div className="grid grid-cols-2 gap-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="right-thumb">Right Thumb</Label>
+                <Input id="right-thumb" placeholder="Scan right thumb" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="right-index">Right Index</Label>
+                <Input id="right-index" placeholder="Scan right index" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="right-middle">Right Middle</Label>
+                <Input id="right-middle" placeholder="Scan right middle" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="right-ring">Right Ring</Label>
+                <Input id="right-ring" placeholder="Scan right ring" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="right-pinky">Right Pinky</Label>
+                <Input id="right-pinky" placeholder="Scan right pinky" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="left-thumb">Left Thumb</Label>
+                <Input id="left-thumb" placeholder="Scan left thumb" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="left-index">Left Index</Label>
+                <Input id="left-index" placeholder="Scan left index" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="left-middle">Left Middle</Label>
+                <Input id="left-middle" placeholder="Scan left middle" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="left-ring">Left Ring</Label>
+                <Input id="left-ring" placeholder="Scan left ring" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="left-pinky">Left Pinky</Label>
+                <Input id="left-pinky" placeholder="Scan left pinky" />
+              </div>
+            </div>
+          </div>
+        </Card>
         <div className="flex justify-end col-span-1 md:col-span-2 lg:col-span-3">
           <Button type="submit">Submit</Button>
         </div>
@@ -267,8 +313,8 @@ export function RegistrationForm() {
 export const Route = createFileRoute("/_authenticated/register/")({
   component: () => (
     <div className="flex flex-col w-full gap-4">
-      <div className="flex flex-row items-center justify-center w-full">
-        <Card className="min-w-[500px]">
+      <div className="flex flex-col items-center justify-center w-full gap-4">
+        <Card className="w-full max-w-4xl">
           <CardHeader>
             <div>
               <h1 className="text-2xl font-bold">Register</h1>
@@ -282,6 +328,7 @@ export const Route = createFileRoute("/_authenticated/register/")({
           </CardContent>
         </Card>
       </div>
+      <div></div>
     </div>
   ),
 });
