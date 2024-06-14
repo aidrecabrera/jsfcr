@@ -10,16 +10,16 @@ import {
 
 export function FingerprintRegistration({ handleFileChange }: any) {
   const fingerNames = [
-    "right-thumb",
-    "right-index",
-    "right-middle",
-    "right-ring",
-    "right-pinky",
-    "left-thumb",
-    "left-index",
-    "left-middle",
-    "left-ring",
-    "left-pinky",
+    "R_THUMB",
+    "R_INDEX",
+    "R_MIDDLE",
+    "R_RING",
+    "R_PINKY",
+    "L_THUMB",
+    "L_INDEX",
+    "L_MIDDLE",
+    "L_RING",
+    "L_PINKY",
   ];
 
   return (

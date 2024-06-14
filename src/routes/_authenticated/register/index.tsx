@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { FingerprintRegistration } from "@/components/fingerprint-registration";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -11,16 +10,20 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { supabase } from "@/lib/supabase";
+import {
+  createFingerprintMetadata,
+  uploadFingerprintImage,
+} from "@/services/service_fingerprint";
 import { createStudent } from "@/services/service_student";
+import { TFingerType, TUploadResponse } from "@/types/fingerprint.types";
 import { TableType } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { StorageError } from "@supabase/storage-js";
 import { createFileRoute } from "@tanstack/react-router";
 import { decode, encode } from "base64-arraybuffer";
 import { useForm } from "react-hook-form";
 import z from "zod";
 
-// Define schema for form validation
 const formSchema = z.object({
   student_id: z.string().min(1).max(255),
   student_name: z.string().min(1).max(255),
@@ -40,7 +43,6 @@ const formSchema = z.object({
 
 type TStudents = TableType<"student">;
 
-// Main component for the registration form
 export function RegistrationForm() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -59,96 +61,71 @@ export function RegistrationForm() {
       student_province: "",
       student_barangay: "",
       fingerprints: {
-        "right-thumb": null,
-        "right-index": null,
-        "right-middle": null,
-        "right-ring": null,
-        "right-pinky": null,
-        "left-thumb": null,
-        "left-index": null,
-        "left-middle": null,
-        "left-ring": null,
-        "left-pinky": null,
+        R_THUMB: null,
+        R_INDEX: null,
+        R_MIDDLE: null,
+        R_RING: null,
+        R_PINKY: null,
+        L_THUMB: null,
+        L_INDEX: null,
+        L_MIDDLE: null,
+        L_RING: null,
+        L_PINKY: null,
       },
     },
   });
-
-  async function uploadFingerprintImage(
-    fileData: ArrayBuffer,
-    folder: string,
-    fileName: string
-  ) {
-    const mimeType = "image/png";
-    const fullFileName = `${folder}/${fileName}.png`;
-
-    const { data, error } = await supabase.storage
-      .from("fingerprints")
-      .upload(fullFileName, new Blob([fileData], { type: mimeType }), {
-        cacheControl: "3600",
-        upsert: false,
-      });
-
-    if (error) {
-      console.error("Error uploading file:", error);
-      return null;
-    }
-
-    const { data: publicData } = supabase.storage
-      .from("fingerprints")
-      .getPublicUrl(fullFileName);
-
-    return publicData?.publicUrl || null;
-  }
 
   async function saveFingerprintData(
     values: z.infer<typeof formSchema>,
     studentUid: number
   ) {
-    const studentName = `${values.student_family_name}_${values.student_name}_${
-      studentUid
-    }`;
+    const studentFingerprintDirectory = `${values.student_family_name}-STUDENT-${studentUid}`;
+    const studentName = `${values.student_family_name}_${values.student_name}_${values.student_course}_${studentUid}`;
     const fingerprints = values.fingerprints || {};
-    const fingerprintUrls: Record<string, string | null> = {};
-
-    const columnMap = {
-      "left-thumb": "img_left_thumb_url",
-      "left-index": "img_left_index_finger_url",
-      "left-middle": "img_left_middle_finger_url",
-      "left-ring": "img_left_ring_finger_url",
-      "left-pinky": "img_left_pinky_url",
-      "right-thumb": "img_right_thumb_url",
-      "right-index": "img_right_index_finger_url",
-      "right-middle": "img_right_middle_finger_url",
-      "right-ring": "img_right_ring_finger_url",
-      "right-pinky": "img_right_pinky_url",
-    };
 
     for (const [finger, data] of Object.entries(fingerprints)) {
-      if (data) {
-        const folder = finger.startsWith("left") ? "left" : "right";
+      if (data && finger) {
+        const folder = finger.startsWith("L_") ? "left" : "right";
         const fileName = `${studentName}_${finger}`;
-        const fileUrl = await uploadFingerprintImage(
-          decode(data),
-          folder,
-          fileName
-        );
-        if (fileUrl && columnMap[finger]) {
-          fingerprintUrls[columnMap[finger]] = fileUrl;
+        try {
+          const UploadResponse: TUploadResponse | StorageError =
+            await uploadFingerprintImage(
+              decode(data),
+              `${folder}/${studentFingerprintDirectory}`,
+              fileName
+            );
+          if (UploadResponse instanceof StorageError) {
+            throw UploadResponse;
+          }
+          if (UploadResponse !== null) {
+            const { id: object_id, publicUrl: img_url } =
+              UploadResponse as TUploadResponse;
+            await createFingerprintMetadata(
+              finger as TFingerType,
+              object_id,
+              img_url,
+              object_id
+            );
+          }
+        } catch (error) {
+          console.error(error);
         }
       }
     }
-
-    // Ensure studentUid is a bigint (if it needs to be converted)
-    const bigIntStudentUid = BigInt(studentUid);
-
-    // Save URLs to student_fingerprint_images table
-    await supabase
-      .from("student_fingerprint_images")
-      .upsert([{ student_uid: bigIntStudentUid, ...fingerprintUrls }]);
   }
 
+  const handleFileChange = (e: { target: { id: any; files: any } }) => {
+    const { id, files } = e.target;
+    if (files && files[0]) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        form.setValue(`fingerprints.${id}`, encode(reader.result as any));
+      };
+      reader.readAsArrayBuffer(files[0]);
+    }
+  };
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    // Save the student basic info and retrieve the created student ID
     const studentUid = await createStudent({
       student_id: values.student_id,
       student_name: values.student_name,
@@ -165,19 +142,12 @@ export function RegistrationForm() {
       student_barangay: values.student_barangay,
     });
 
-    await saveFingerprintData(values, studentUid);
-  }
+    console.log(await saveFingerprintData(values, studentUid));
 
-  const handleFileChange = (e: { target: { id: any; files: any } }) => {
-    const { id, files } = e.target;
-    if (files && files[0]) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        form.setValue(`fingerprints.${id}`, encode(reader.result as any));
-      };
-      reader.readAsArrayBuffer(files[0]);
-    }
-  };
+    alert(
+      "Student information and fingerprints have been successfully uploaded."
+    );
+  }
 
   return (
     <Form {...form}>
