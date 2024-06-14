@@ -1,10 +1,12 @@
 import { supabase } from "@/lib/supabase";
 import {
   EFinger,
+  TFingerType,
   TUploadFingerprintImage,
   TUploadResponse,
 } from "@/types/fingerprint.types";
 import { StorageError } from "@supabase/storage-js";
+import { decode } from "base64-arraybuffer";
 
 export async function uploadFingerprintImage(
   fileData: ArrayBuffer,
@@ -32,6 +34,42 @@ export async function uploadFingerprintImage(
   return { ...data, publicUrl } as TUploadResponse;
 }
 
+export async function handleFileUpload(
+  fingerprints: Record<string, string | null>,
+  studentName: string,
+  studentUid: number
+) {
+  for (const [finger, data] of Object.entries(fingerprints)) {
+    if (data && finger) {
+      const folder = finger.startsWith("L_") ? "left" : "right";
+      const fileName = `${studentName}_${finger}`;
+      try {
+        const UploadResponse: TUploadResponse | StorageError =
+          await uploadFingerprintImage(
+            decode(data),
+            `${folder}/${studentName}-STUDENT-${studentUid}`,
+            fileName
+          );
+        if (UploadResponse instanceof StorageError) {
+          throw UploadResponse;
+        }
+        if (UploadResponse !== null) {
+          const { id: object_id, publicUrl: img_url } =
+            UploadResponse as TUploadResponse;
+          await createFingerprintMetadata(
+            finger as TFingerType,
+            object_id,
+            img_url,
+            object_id
+          );
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    }
+  }
+}
+
 export async function createFingerprintMetadata(
   finger: string,
   objectId: string,
@@ -43,7 +81,7 @@ export async function createFingerprintMetadata(
     return null;
   }
 
-  // ! TODO: Replace with toast.
+  // ! TODO: Replace with toast
   console.log(
     "Creating fingerprint metadata for",
     finger,
