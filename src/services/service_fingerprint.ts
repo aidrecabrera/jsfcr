@@ -7,7 +7,6 @@ import {
   TUploadResponse,
 } from "@/types/fingerprint.types";
 import { StorageError } from "@supabase/storage-js";
-import { PostgrestError } from "@supabase/supabase-js";
 import { decode } from "base64-arraybuffer";
 
 const MIME_TYPE = "image/png";
@@ -66,82 +65,46 @@ async function processUpload(
     if (uploadResponse) {
       const { id: objectId, publicUrl: imgUrl } = uploadResponse;
       const imgHash = await generateHash(data);
-      const fingerprint_meta_id = await createFingerprintMetadata(
+      await registerFingerprint(
+        studentUid,
         finger as TFingerType,
         objectId,
         imgUrl,
         imgHash
       );
-      if (typeof fingerprint_meta_id === "number") {
-        await registerFingerprint(studentUid, fingerprint_meta_id);
-      } else {
-        console.error(
-          "Failed to create fingerprint metadata:",
-          fingerprint_meta_id
-        );
-        return;
-      }
     }
   } catch (error) {
     console.error(error);
   }
 }
 
-export async function createFingerprintMetadata(
+export async function registerFingerprint(
+  student_id: number,
   finger: string,
-  objectId: string,
+  object_id: string,
   img_url: string | null,
   hash: string
-): Promise<number | PostgrestError> {
+) {
   if (!Object.values(EFinger).includes(finger)) {
     console.error("Invalid finger:", finger);
     throw Error("Invalid finger");
   }
 
-  const { data, error } = await supabase
-    .from("fingerprint_metadata")
-    .insert({ finger, hash, img_url, object_id: objectId })
-    .select("fingerprint_metadata_id")
+  const { error } = await supabase
+    .from("student_fingerprint")
+    .insert({
+      finger,
+      hash,
+      img_url,
+      object_id,
+      student_id,
+    })
+    .select("student_id")
     .single();
 
   if (error) {
     console.error("Error inserting fingerprint metadata:", error);
     throw error;
-  }
-
-  return data.fingerprint_metadata_id;
-}
-
-export async function registerFingerprint(
-  studentUid: number,
-  fingerprint_metadata_id: number
-) {
-  const {
-    data,
-    error,
-  }: {
-    data: { fingerprint_id: number };
-    error: PostgrestError;
-  } = await supabase
-    .from("student_fingerprint")
-    .insert({
-      student_owner: studentUid,
-      fingerprint_metadata_id,
-    })
-    .select("fingerprint_id")
-    .single();
-
-  if (error) {
-    return error;
-  }
-  const { error: registrationFingerprintError } = await supabase
-    .from("student")
-    .update({
-      fingerprint_data: data.fingerprint_id,
-    })
-    .eq("student_uid", studentUid);
-  if (registrationFingerprintError) {
-    throw registrationFingerprintError;
   }
 }
 

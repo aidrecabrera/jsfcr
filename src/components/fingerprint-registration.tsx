@@ -34,8 +34,22 @@ export function FingerprintRegistration({ handleFileChange }: any) {
         <div className="grid grid-cols-2 gap-4 py-4">
           {fingerNames.map((finger) => (
             <div key={finger} className="space-y-2">
-              <Label htmlFor={finger}>{finger.replace(/-/g, " ")}</Label>
+              <Label className="capitalize" htmlFor={finger}>
+                {finger
+                  .replace(/_/g, " ")
+                  .replace(/^R/i, "Right")
+                  .replace(/^L/i, "Left")
+                  .toLowerCase()
+                  .split(" ")
+                  .map((word, index) =>
+                    index === 0
+                      ? word.charAt(0).toUpperCase() + word.slice(1)
+                      : word
+                  )
+                  .join(" ")}
+              </Label>
               <Input
+                required
                 type="file"
                 id={finger}
                 accept="image/*"
