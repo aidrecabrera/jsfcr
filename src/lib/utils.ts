@@ -1,5 +1,6 @@
-import { encode } from "base64-arraybuffer";
+import { decode, encode } from "base64-arraybuffer";
 import { type ClassValue, clsx } from "clsx";
+
 import { useForm } from "react-hook-form";
 import { twMerge } from "tailwind-merge";
 
@@ -41,3 +42,14 @@ export const handleFileChange =
       reader.readAsArrayBuffer(files[0]);
     }
   };
+
+export function bufferToHex(buffer: ArrayBuffer): string {
+  const hashArray = Array.from(new Uint8Array(buffer));
+  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+export async function generateHash(base64Data: string): Promise<string> {
+  const buffer = decode(base64Data);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", buffer);
+  return bufferToHex(hashBuffer);
+}

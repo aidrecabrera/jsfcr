@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase";
+import { generateHash } from "@/lib/utils";
 import {
   EFinger,
   TFingerType,
@@ -6,6 +7,7 @@ import {
   TUploadResponse,
 } from "@/types/fingerprint.types";
 import { StorageError } from "@supabase/storage-js";
+import { PostgrestError } from "@supabase/supabase-js";
 import { decode } from "base64-arraybuffer";
 
 const MIME_TYPE = "image/png";
@@ -42,7 +44,7 @@ export async function handleFileUpload(
       const folder = finger.startsWith("L_") ? "left" : "right";
       const fileName = `${studentName}_${finger}`;
       const folderPath = `${folder}/${studentName}-STUDENT-${studentUid}`;
-      await processUpload(data, folderPath, fileName, finger);
+      await processUpload(data, folderPath, fileName, finger, studentUid);
     }
   }
 }
@@ -51,7 +53,8 @@ async function processUpload(
   data: string,
   folderPath: string,
   fileName: string,
-  finger: string
+  finger: string,
+  studentUid: number
 ) {
   try {
     const uploadResponse: TUploadResponse | StorageError =
@@ -62,12 +65,22 @@ async function processUpload(
 
     if (uploadResponse) {
       const { id: objectId, publicUrl: imgUrl } = uploadResponse;
-      await createFingerprintMetadata(
+      const imgHash = await generateHash(data);
+      const fingerprint_meta_id = await createFingerprintMetadata(
         finger as TFingerType,
         objectId,
         imgUrl,
-        objectId
+        imgHash
       );
+      if (typeof fingerprint_meta_id === "number") {
+        await registerFingerprint(studentUid, fingerprint_meta_id);
+      } else {
+        console.error(
+          "Failed to create fingerprint metadata:",
+          fingerprint_meta_id
+        );
+        return;
+      }
     }
   } catch (error) {
     console.error(error);
@@ -79,10 +92,10 @@ export async function createFingerprintMetadata(
   objectId: string,
   img_url: string | null,
   hash: string
-): Promise<any | null> {
+): Promise<number | PostgrestError> {
   if (!Object.values(EFinger).includes(finger)) {
     console.error("Invalid finger:", finger);
-    return null;
+    throw Error("Invalid finger");
   }
 
   const { data, error } = await supabase
@@ -93,10 +106,43 @@ export async function createFingerprintMetadata(
 
   if (error) {
     console.error("Error inserting fingerprint metadata:", error);
-    return null;
+    throw error;
   }
 
-  return data?.fingerprint_metadata_id || null;
+  return data.fingerprint_metadata_id;
+}
+
+export async function registerFingerprint(
+  studentUid: number,
+  fingerprint_metadata_id: number
+) {
+  const {
+    data,
+    error,
+  }: {
+    data: { fingerprint_id: number };
+    error: PostgrestError;
+  } = await supabase
+    .from("student_fingerprint")
+    .insert({
+      student_owner: studentUid,
+      fingerprint_metadata_id,
+    })
+    .select("fingerprint_id")
+    .single();
+
+  if (error) {
+    return error;
+  }
+  const { error: registrationFingerprintError } = await supabase
+    .from("student")
+    .update({
+      fingerprint_data: data.fingerprint_id,
+    })
+    .eq("student_uid", studentUid);
+  if (registrationFingerprintError) {
+    throw registrationFingerprintError;
+  }
 }
 
 function getPublicUrl(fullFileName: string): string {
