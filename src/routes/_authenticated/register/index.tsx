@@ -86,17 +86,16 @@ async function handleRegistration(
     return studentData;
   })();
 
-  toast.promise(registrationPromise, {
-    loading: "Loading...",
-    success: (data) =>
-      `${data.student_name}'s information and fingerprints have been successfully uploaded.`,
-    error:
-      "There was an error uploading the student information and fingerprints.",
-  });
-
   try {
     await registrationPromise;
     form.reset();
+    toast.promise(registrationPromise, {
+      loading: "Loading...",
+      success: (data) =>
+        `${data.student_name}'s information and fingerprints have been successfully registered.`,
+      error:
+        "There was an error registering the student information and fingerprints.",
+    });
   } catch (error) {
     console.error("Registration failed:", error);
   }

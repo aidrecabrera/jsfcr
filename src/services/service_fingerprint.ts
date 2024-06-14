@@ -8,6 +8,7 @@ import {
 } from "@/types/fingerprint.types";
 import { StorageError } from "@supabase/storage-js";
 import { decode } from "base64-arraybuffer";
+import { toast } from "sonner";
 
 const MIME_TYPE = "image/png";
 const FINGERPRINTS_FOLDER = "fingerprints";
@@ -55,7 +56,7 @@ async function processUpload(
   finger: string,
   studentUid: number
 ) {
-  try {
+  const uploadPromise = (async () => {
     const uploadResponse: TUploadResponse | StorageError =
       await uploadFingerprintImage(decode(data), folderPath, fileName);
     if (uploadResponse instanceof StorageError) {
@@ -73,6 +74,44 @@ async function processUpload(
         imgHash
       );
     }
+  })();
+
+  toast.promise(uploadPromise, {
+    loading: `Uploading ${finger
+      .replace(/_/g, " ")
+      .replace(/^R/i, "Right")
+      .replace(/^L/i, "Left")
+      .toLowerCase()
+      .split(" ")
+      .map((word, index) =>
+        index === 0 ? word.charAt(0).toUpperCase() + word.slice(1) : word
+      )
+      .join(" ")} fingerprint...`,
+    success: () =>
+      `${finger
+        .replace(/_/g, " ")
+        .replace(/^R/i, "Right")
+        .replace(/^L/i, "Left")
+        .toLowerCase()
+        .split(" ")
+        .map((word, index) =>
+          index === 0 ? word.charAt(0).toUpperCase() + word.slice(1) : word
+        )
+        .join(" ")} fingerprint uploaded successfully!`,
+    error: `Error uploading ${finger
+      .replace(/_/g, " ")
+      .replace(/^R/i, "Right")
+      .replace(/^L/i, "Left")
+      .toLowerCase()
+      .split(" ")
+      .map((word, index) =>
+        index === 0 ? word.charAt(0).toUpperCase() + word.slice(1) : word
+      )
+      .join(" ")} fingerprint.`,
+  });
+
+  try {
+    await uploadPromise;
   } catch (error) {
     console.error(error);
   }
