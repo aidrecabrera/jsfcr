@@ -8,16 +8,18 @@ import {
 import { StorageError } from "@supabase/storage-js";
 import { decode } from "base64-arraybuffer";
 
+const MIME_TYPE = "image/png";
+const FINGERPRINTS_FOLDER = "fingerprints";
+
 export async function uploadFingerprintImage(
   fileData: ArrayBuffer,
   folder: string,
   fileName: string
 ): Promise<TUploadResponse | StorageError> {
-  const mimeType = "image/png";
   const fullFileName = `${folder}/${fileName}.png`;
   const { data, error }: TUploadFingerprintImage = await supabase.storage
-    .from("fingerprints")
-    .upload(fullFileName, new Blob([fileData], { type: mimeType }), {
+    .from(FINGERPRINTS_FOLDER)
+    .upload(fullFileName, new Blob([fileData], { type: MIME_TYPE }), {
       cacheControl: "3600",
       upsert: false,
     });
@@ -26,11 +28,7 @@ export async function uploadFingerprintImage(
     return error as StorageError;
   }
 
-  const publicUrl = `${
-    supabase.storage.from("fingerprints").getPublicUrl(fullFileName).data
-      .publicUrl
-  }`;
-
+  const publicUrl = getPublicUrl(fullFileName);
   return { ...data, publicUrl } as TUploadResponse;
 }
 
@@ -43,30 +41,36 @@ export async function handleFileUpload(
     if (data && finger) {
       const folder = finger.startsWith("L_") ? "left" : "right";
       const fileName = `${studentName}_${finger}`;
-      try {
-        const UploadResponse: TUploadResponse | StorageError =
-          await uploadFingerprintImage(
-            decode(data),
-            `${folder}/${studentName}-STUDENT-${studentUid}`,
-            fileName
-          );
-        if (UploadResponse instanceof StorageError) {
-          throw UploadResponse;
-        }
-        if (UploadResponse !== null) {
-          const { id: object_id, publicUrl: img_url } =
-            UploadResponse as TUploadResponse;
-          await createFingerprintMetadata(
-            finger as TFingerType,
-            object_id,
-            img_url,
-            object_id
-          );
-        }
-      } catch (error) {
-        console.error(error);
-      }
+      const folderPath = `${folder}/${studentName}-STUDENT-${studentUid}`;
+      await processUpload(data, folderPath, fileName, finger);
     }
+  }
+}
+
+async function processUpload(
+  data: string,
+  folderPath: string,
+  fileName: string,
+  finger: string
+) {
+  try {
+    const uploadResponse: TUploadResponse | StorageError =
+      await uploadFingerprintImage(decode(data), folderPath, fileName);
+    if (uploadResponse instanceof StorageError) {
+      throw uploadResponse;
+    }
+
+    if (uploadResponse) {
+      const { id: objectId, publicUrl: imgUrl } = uploadResponse;
+      await createFingerprintMetadata(
+        finger as TFingerType,
+        objectId,
+        imgUrl,
+        objectId
+      );
+    }
+  } catch (error) {
+    console.error(error);
   }
 }
 
@@ -81,24 +85,9 @@ export async function createFingerprintMetadata(
     return null;
   }
 
-  // ! TODO: Replace with toast
-  console.log(
-    "Creating fingerprint metadata for",
-    finger,
-    "with object ID",
-    objectId
-  );
-
   const { data, error } = await supabase
     .from("fingerprint_metadata")
-    .insert([
-      {
-        finger: finger,
-        hash: hash,
-        img_url: img_url,
-        object_id: objectId,
-      },
-    ])
+    .insert({ finger, hash, img_url, object_id: objectId })
     .select("fingerprint_metadata_id")
     .single();
 
@@ -108,4 +97,12 @@ export async function createFingerprintMetadata(
   }
 
   return data?.fingerprint_metadata_id || null;
+}
+
+function getPublicUrl(fullFileName: string): string {
+  const publicUrlData = supabase.storage
+    .from(FINGERPRINTS_FOLDER)
+    .getPublicUrl(fullFileName).data;
+
+  return publicUrlData?.publicUrl || "";
 }

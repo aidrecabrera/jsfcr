@@ -38,7 +38,33 @@ const formSchema = z.object({
 function initializeForm() {
   return useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {},
+    defaultValues: {
+      student_id: "",
+      student_name: "",
+      student_middle_name: "",
+      student_family_name: "",
+      student_suffix: "",
+      student_course: "",
+      student_year: "",
+      student_address: "",
+      student_zip_code: "",
+      student_province: "",
+      student_municipal: "",
+      student_barangay: "",
+      student_region: "",
+      fingerprints: {
+        L_thumb: null,
+        L_index: null,
+        L_middle: null,
+        L_ring: null,
+        L_pinky: null,
+        R_thumb: null,
+        R_index: null,
+        R_middle: null,
+        R_ring: null,
+        R_pinky: null,
+      },
+    },
   });
 }
 
@@ -58,7 +84,6 @@ async function handleRegistration(
     await handleFileUpload(fingerprints, studentName, studentUid);
 
     form.reset();
-
     alert(
       "Student information and fingerprints have been successfully uploaded."
     );
