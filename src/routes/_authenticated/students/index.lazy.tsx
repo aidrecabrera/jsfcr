@@ -1,7 +1,7 @@
-// @ts-nocheck
+import StudentDetailsDialog from "@/components/student-details";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { DataTable } from "@/components/ui/data-table";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,31 +21,10 @@ type Students = TableType<"student">;
 
 const columns: ColumnDef<Students>[] = [
   {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
     accessorKey: "student_id",
     header: ({ column }) => (
       <Button
+        className="-ml-4"
         variant="ghost"
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
       >
@@ -58,6 +37,7 @@ const columns: ColumnDef<Students>[] = [
     accessorKey: "student_name",
     header: ({ column }) => (
       <Button
+        className="-ml-4"
         variant="ghost"
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
       >
@@ -65,15 +45,33 @@ const columns: ColumnDef<Students>[] = [
         <ArrowUpDown className="w-4 h-4 ml-2" />
       </Button>
     ),
+    cell: ({ row }) => {
+      const fullName = `${row.original.student_name} ${row.original.student_middle_name ? row.original.student_middle_name : ""} ${row.original.student_family_name} ${row.original.student_suffix ? row.original.student_suffix : ""}`;
+      return fullName;
+    },
   },
   {
     accessorKey: "student_course",
     header: ({ column }) => (
       <Button
+        className="-ml-4"
         variant="ghost"
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
       >
-        Student Email
+        Student Course
+        <ArrowUpDown className="w-4 h-4 ml-2" />
+      </Button>
+    ),
+  },
+  {
+    accessorKey: "student_year",
+    header: ({ column }) => (
+      <Button
+        className="-ml-4"
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
+        Student Year
         <ArrowUpDown className="w-4 h-4 ml-2" />
       </Button>
     ),
@@ -82,18 +80,7 @@ const columns: ColumnDef<Students>[] = [
     accessorKey: "student_address",
     header: ({ column }) => (
       <Button
-        variant="ghost"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      >
-        Student Phone
-        <ArrowUpDown className="w-4 h-4 ml-2" />
-      </Button>
-    ),
-  },
-  {
-    accessorKey: "date_registered",
-    header: ({ column }) => (
-      <Button
+        className="-ml-4"
         variant="ghost"
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
       >
@@ -103,31 +90,62 @@ const columns: ColumnDef<Students>[] = [
     ),
   },
   {
+    accessorKey: "date_registered",
+    header: ({ column }) => (
+      <Button
+        className="-ml-4"
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
+        Date Registered
+        <ArrowUpDown className="w-4 h-4 ml-2" />
+      </Button>
+    ),
+    cell: ({ row }) => {
+      console.log(row.original.date_registered);
+      const date = new Date(row.original.date_registered);
+      return date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+    },
+  },
+  {
     id: "actions",
     enableHiding: false,
     cell: ({ row }) => {
       const caseData = row.original;
       return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="w-8 h-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="w-4 h-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem
-              onClick={() =>
-                navigator.clipboard.writeText(caseData.student_id.toString())
-              }
-            >
-              Copy Student ID
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>View details</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <Dialog>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="w-8 h-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal className="w-4 h-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuItem
+                onClick={() =>
+                  navigator.clipboard.writeText(caseData.student_id.toString())
+                }
+              >
+                Copy Student ID
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DialogTrigger asChild>
+                <DropdownMenuItem>
+                  <span>Delete</span>
+                </DropdownMenuItem>
+              </DialogTrigger>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <DialogContent>
+            <StudentDetailsDialog {...caseData} />
+          </DialogContent>
+        </Dialog>
       );
     },
     enableSorting: false,
