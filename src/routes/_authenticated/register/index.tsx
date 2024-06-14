@@ -16,6 +16,7 @@ import { createStudent } from "@/services/service_student";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createFileRoute } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import z from "zod";
 
 const formSchema = z.object({
@@ -72,7 +73,7 @@ async function handleRegistration(
   form: ReturnType<typeof useForm>,
   values: z.infer<typeof formSchema>
 ) {
-  try {
+  const registrationPromise = (async () => {
     const { fingerprints = {}, ...studentData } = values;
     const studentUid = await createStudent(studentData);
     const studentName = formatFilename(
@@ -82,16 +83,22 @@ async function handleRegistration(
       studentUid
     );
     await handleFileUpload(fingerprints, studentName, studentUid);
+    return studentData;
+  })();
 
+  toast.promise(registrationPromise, {
+    loading: "Loading...",
+    success: (data) =>
+      `${data.student_name}'s information and fingerprints have been successfully uploaded.`,
+    error:
+      "There was an error uploading the student information and fingerprints.",
+  });
+
+  try {
+    await registrationPromise;
     form.reset();
-    alert(
-      "Student information and fingerprints have been successfully uploaded."
-    );
   } catch (error) {
     console.error("Registration failed:", error);
-    alert(
-      "There was an error uploading the student information and fingerprints."
-    );
   }
 }
 
