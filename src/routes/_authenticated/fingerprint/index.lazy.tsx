@@ -5,10 +5,11 @@ import {
   CardHeader,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { supabase } from "@/lib/supabase";
 import { Separator } from "@radix-ui/react-dropdown-menu";
 import { createLazyFileRoute } from "@tanstack/react-router";
 import axios from "axios";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "tailwindcss/tailwind.css";
 
 function Fingerprint() {
@@ -18,6 +19,7 @@ function Fingerprint() {
   const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [serverIp, setServerIp] = useState("localhost");
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -35,6 +37,10 @@ function Fingerprint() {
     setImageFile(null);
   };
 
+  const handleServerIpChange = (e) => {
+    setServerIp(e.target.value);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -43,23 +49,21 @@ function Fingerprint() {
 
     try {
       let response;
+      const serverUrl = `http://${serverIp}:5152`;
+
       if (imageFile) {
         const formData = new FormData();
         formData.append("file", imageFile);
         formData.append("topN", topN as unknown as string);
 
-        response = await axios.post(
-          "http://localhost:5152/match-file",
-          formData,
-          {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          }
-        );
+        response = await axios.post(`${serverUrl}/match-file`, formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
       } else if (imageUrl) {
         response = await axios.post(
-          "http://localhost:5152/match-url",
+          `${serverUrl}/match-url`,
           {
             imageUrl,
             topN,
@@ -82,13 +86,30 @@ function Fingerprint() {
     }
   };
 
+  const [allEvidences, setAllEvidences] = useState([]);
+
+  const fetchEvidences = async () => {
+    const { data: evidences, error } = await supabase
+      .from("cases")
+      .select("case_evidence");
+    if (error) {
+      console.error(error);
+    } else {
+      setAllEvidences(evidences);
+    }
+  };
+
+  useEffect(() => {
+    fetchEvidences();
+    console.log(allEvidences);
+  }, []);
+
   return (
     <div className="grid w-full grid-cols-1 gap-4 lg:grid-cols-2">
-      {error && <p className="mt-4 text-sm italic text-red-500">{error}</p>}
-
       <Card className="col-span-1">
         <CardHeader>
           <h2 className="mb-4 text-xl font-bold">Preview</h2>
+          {error && <p className="mt-4 text-sm italic text-red-500">{error}</p>}
         </CardHeader>
         <CardContent className="flex flex-col items-center justify-center">
           <Card className="w-full h-full p-8">
@@ -162,6 +183,21 @@ function Fingerprint() {
                   placeholder="Enter number of top matches"
                   min="1"
                   required
+                />
+              </div>
+              <div className="mb-4">
+                <label
+                  htmlFor="serverIp"
+                  className="block mb-2 text-sm font-bold text-gray-700"
+                >
+                  Server IP:
+                </label>
+                <Input
+                  type="text"
+                  id="serverIp"
+                  value={serverIp}
+                  onChange={handleServerIpChange}
+                  placeholder="Enter server IP (default: localhost)"
                 />
               </div>
               <button

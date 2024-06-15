@@ -22,6 +22,9 @@ import { Route as AuthenticatedCasesIndexImport } from './routes/_authenticated/
 
 const AuthenticatedIndexLazyImport = createFileRoute('/_authenticated/')()
 const UnauthorizedLoginLazyImport = createFileRoute('/_unauthorized/login')()
+const AuthenticatedSubmitIndexLazyImport = createFileRoute(
+  '/_authenticated/submit/',
+)()
 const AuthenticatedStudentsIndexLazyImport = createFileRoute(
   '/_authenticated/students/',
 )()
@@ -66,6 +69,14 @@ const UnauthorizedLoginLazyRoute = UnauthorizedLoginLazyImport.update({
 } as any).lazy(() =>
   import('./routes/_unauthorized/login.lazy').then((d) => d.Route),
 )
+
+const AuthenticatedSubmitIndexLazyRoute =
+  AuthenticatedSubmitIndexLazyImport.update({
+    path: '/submit/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any).lazy(() =>
+    import('./routes/_authenticated/submit/index.lazy').then((d) => d.Route),
+  )
 
 const AuthenticatedStudentsIndexLazyRoute =
   AuthenticatedStudentsIndexLazyImport.update({
@@ -215,6 +226,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedStudentsIndexLazyImport
       parentRoute: typeof AuthenticatedImport
     }
+    '/_authenticated/submit/': {
+      id: '/_authenticated/submit/'
+      path: '/submit'
+      fullPath: '/submit'
+      preLoaderRoute: typeof AuthenticatedSubmitIndexLazyImport
+      parentRoute: typeof AuthenticatedImport
+    }
   }
 }
 
@@ -231,6 +249,7 @@ export const routeTree = rootRoute.addChildren({
     AuthenticatedRegisterIndexRoute,
     AuthenticatedFingerprintIndexLazyRoute,
     AuthenticatedStudentsIndexLazyRoute,
+    AuthenticatedSubmitIndexLazyRoute,
   }),
   UnauthorizedRoute: UnauthorizedRoute.addChildren({
     UnauthorizedLoginLazyRoute,
@@ -260,7 +279,8 @@ export const routeTree = rootRoute.addChildren({
         "/_authenticated/cases/",
         "/_authenticated/register/",
         "/_authenticated/fingerprint/",
-        "/_authenticated/students/"
+        "/_authenticated/students/",
+        "/_authenticated/submit/"
       ]
     },
     "/_unauthorized": {
@@ -307,6 +327,10 @@ export const routeTree = rootRoute.addChildren({
     },
     "/_authenticated/students/": {
       "filePath": "_authenticated/students/index.lazy.tsx",
+      "parent": "/_authenticated"
+    },
+    "/_authenticated/submit/": {
+      "filePath": "_authenticated/submit/index.lazy.tsx",
       "parent": "/_authenticated"
     }
   }
