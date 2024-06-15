@@ -247,7 +247,7 @@ export function CaseSubmissionForm() {
               name="case_image"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Upload Image</FormLabel>
+                  <FormLabel>Upload Image Evidence</FormLabel>
                   <FormControl>
                     <Input
                       type="file"
