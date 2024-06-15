@@ -179,42 +179,48 @@ function Fingerprint() {
       </Card>
 
       <Card className="w-full col-span-1">
-        {results && (
-          <div className="p-8 mt-8 bg-white rounded shadow-md">
-            <h2 className="mb-4 text-xl font-bold">Results</h2>
-            <ul>
-              {results.suspects.map((match) => (
-                <li
-                  key={match.suspect_id}
-                  className="flex items-center py-4 border-b border-gray-200"
-                >
-                  <div className="mr-4">
-                    <p>
-                      <strong>Suspect ID:</strong> {match.suspect_id}
-                    </p>
-                    <p>
-                      <strong>Student ID:</strong> {match.student_id}
-                    </p>
-                    <p>
-                      <strong>Confidence:</strong> {match.confidence.toFixed(2)}
-                    </p>
-                  </div>
-                  {match.url && (
-                    <img
-                      src={match.url}
-                      alt={`Suspect ${match.suspect_id}`}
-                      className="object-contain w-16 h-16 border rounded"
-                    />
-                  )}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
+        <CardHeader>
+          <h2 className="mb-4 text-xl font-bold">Results</h2>
+        </CardHeader>
+        {results && <ResultCard results={results} />}
       </Card>
     </div>
   );
 }
+
+const ResultCard = ({ results }) => (
+  <CardContent className="grid gap-4">
+    {results &&
+      results.suspects.map((suspect) => (
+        <Card key={suspect.suspect_id}>
+          <CardContent className="flex items-center gap-4 mt-5">
+            <a href={suspect.url}>
+              <img
+                src={suspect.url || "/placeholder.svg"}
+                alt={`Suspect ${suspect.suspect_id}`}
+                width={64}
+                height={64}
+                className="rounded-md"
+              />
+            </a>
+            <div className="grid flex-1 gap-1">
+              <div className="flex items-center justify-between">
+                <div className="font-medium">
+                  Suspect ID: {suspect.suspect_id}
+                </div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">
+                  Confidence: {suspect.confidence.toFixed(2)}%
+                </div>
+              </div>
+              <div className="text-sm text-gray-500 dark:text-gray-400">
+                Student ID: {suspect.student_id}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+  </CardContent>
+);
 
 export const Route = createLazyFileRoute("/_authenticated/fingerprint/")({
   component: Fingerprint,
