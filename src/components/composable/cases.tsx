@@ -55,7 +55,7 @@ export const CaseCard = ({
   };
 
   return (
-    <Card className="min-w-[250px] max-w-full col-span-12 sm:col-span-12 md:col-span-6 lg:col-span-3 overflow-hidden">
+    <Card className="min-w-[250px] max-w-full col-span-12 sm:col-span-12 md:col-span-6 lg:col-span-4 overflow-hidden">
       <CardHeader className="flex flex-row items-start bg-muted/50">
         <div className="grid gap-0.5">
           <CardTitle className="flex items-center gap-2 text-lg group">
