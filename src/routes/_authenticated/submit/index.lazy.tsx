@@ -147,44 +147,52 @@ async function handleImageUpload(
 
 async function handleSubmission(
   form: ReturnType<typeof useForm>,
-  values: z.infer<typeof formSchema>
+  values: z.infer<typeof formSchema>,
+  navigate: ReturnType<typeof useNavigate>
 ) {
   let caseIdPar;
-  console.log(values);
   const myPromise = async () => {
-    const { data, error }: PostgrestSingleResponse<any> = await supabase
-      .from("cases")
-      .insert([
-        {
-          case_title: values.case_title,
-          case_description: values.case_description,
-          case_location: values.case_location,
-          case_uploader_id: values.case_uploader_id,
-        },
-      ])
-      .select(
-        "case_id, case_uploader_id, case_title, case_description, case_location"
-      )
-      .single();
-    if (error) {
-      throw error;
-    }
-    console.log(data.case_id);
-    if (values.case_image && values.case_image.length) {
-      const file = values.case_image[0];
-      const uploadResponse = await handleImageUpload(
-        file,
-        data.case_id,
-        data.case_title,
-        data.case_location,
-        "localhost"
-      );
+    try {
+      const { data, error }: PostgrestSingleResponse<any> = await supabase
+        .from("cases")
+        .insert([
+          {
+            case_title: values.case_title,
+            case_description: values.case_description,
+            case_location: values.case_location,
+            case_uploader_id: values.case_uploader_id,
+          },
+        ])
+        .select(
+          "case_id, case_uploader_id, case_title, case_description, case_location"
+        )
+        .single();
+      if (error) {
+        throw error;
+      }
+      if (values.case_image && values.case_image.length) {
+        const file = values.case_image[0];
+        const uploadResponse = await handleImageUpload(
+          file,
+          data.case_id,
+          data.case_title,
+          data.case_location,
+          "localhost"
+        );
+        console.log(uploadResponse);
+      }
       caseIdPar = data.case_id;
-      console.log(uploadResponse);
+      navigate({
+        to: "/cases/view/$caseid",
+        params: { caseid: caseIdPar },
+      });
+    } catch (error) {
+      console.error("Submission error:", error);
+      throw error;
     }
   };
 
-  toast.promise(myPromise(), {
+  await toast.promise(myPromise(), {
     loading: "Loading...",
     success: "Case has been successfully registered.",
     error: "There was an error registering the case.",
@@ -203,14 +211,13 @@ async function getListOfAdmins() {
 export function CaseSubmissionForm() {
   const form = initializeForm();
   const [admins, setAdmins] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     getListOfAdmins()
       .then((data) => setAdmins(data))
       .catch((error) => console.error("Failed to fetch admins:", error));
   }, []);
-
-  const navigate = useNavigate();
 
   return (
     <Card className="w-full max-w-4xl">
@@ -222,15 +229,12 @@ export function CaseSubmissionForm() {
           <form
             className="flex flex-col space-y-2"
             noValidate
-            onSubmit={form.handleSubmit((values) => {
-              handleSubmission(form, values).then((id) => {
-                if (id) {
-                  navigate({
-                    to: "/cases/view/$caseid",
-                    params: { caseid: id },
-                  });
-                }
-              });
+            onSubmit={form.handleSubmit(async (values) => {
+              try {
+                handleSubmission(form, values, navigate);
+              } catch (error) {
+                console.error("Submission error:", error);
+              }
             })}
           >
             <FormField
