@@ -52,6 +52,14 @@ export const managementNavItems = [
   // },
 ];
 
+export const matchFingerprint = [
+  {
+    to: "/fingerprint",
+    icon: <UsersIcon className="w-4 h-4" />,
+    label: "Suspect Matcher",
+  },
+];
+
 export const casesNavItemsMobile = [
   {
     to: "/",
@@ -112,4 +120,14 @@ export const managementNavItemsMobile = [
   //   className:
   //     "mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground",
   // },
+];
+
+export const fingerprintMatchMobile = [
+  {
+    to: "/fingerprint",
+    icon: <UsersIcon className="w-5 h-5" />,
+    label: "Suspect Matcher",
+    className:
+      "mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground",
+  },
 ];

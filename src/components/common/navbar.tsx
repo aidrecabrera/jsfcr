@@ -1,8 +1,10 @@
 import {
   casesNavItems,
   casesNavItemsMobile,
+  fingerprintMatchMobile,
   managementNavItems,
   managementNavItemsMobile,
+  matchFingerprint,
 } from "@/resources/navigationItems";
 import { Link } from "@tanstack/react-router";
 import { Key } from "react";
@@ -35,6 +37,8 @@ export const Navigation = () => (
       <div className="space-y-2">{renderNavItems(casesNavItems)}</div>
       <Separator className="mt-2 mb-3" />
       <div className="space-y-2">{renderNavItems(managementNavItems)}</div>
+      <Separator className="mt-2 mb-3" />
+      <div className="space-y-2">{renderNavItems(matchFingerprint)}</div>
     </nav>
   </div>
 );
@@ -44,5 +48,7 @@ export const NavigationMobile = () => (
     <div className="space-y-2">{renderNavItems(casesNavItemsMobile)}</div>
     <Separator />
     <div className="space-y-2">{renderNavItems(managementNavItemsMobile)}</div>
+    <Separator />
+    <div className="space-y-2">{renderNavItems(fingerprintMatchMobile)}</div>
   </nav>
 );

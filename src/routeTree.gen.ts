@@ -25,6 +25,9 @@ const UnauthorizedLoginLazyImport = createFileRoute('/_unauthorized/login')()
 const AuthenticatedStudentsIndexLazyImport = createFileRoute(
   '/_authenticated/students/',
 )()
+const AuthenticatedFingerprintIndexLazyImport = createFileRoute(
+  '/_authenticated/fingerprint/',
+)()
 const AuthenticatedCasesPendingLazyImport = createFileRoute(
   '/_authenticated/cases/pending',
 )()
@@ -70,6 +73,16 @@ const AuthenticatedStudentsIndexLazyRoute =
     getParentRoute: () => AuthenticatedRoute,
   } as any).lazy(() =>
     import('./routes/_authenticated/students/index.lazy').then((d) => d.Route),
+  )
+
+const AuthenticatedFingerprintIndexLazyRoute =
+  AuthenticatedFingerprintIndexLazyImport.update({
+    path: '/fingerprint/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any).lazy(() =>
+    import('./routes/_authenticated/fingerprint/index.lazy').then(
+      (d) => d.Route,
+    ),
   )
 
 const AuthenticatedRegisterIndexRoute = AuthenticatedRegisterIndexImport.update(
@@ -188,6 +201,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRegisterIndexImport
       parentRoute: typeof AuthenticatedImport
     }
+    '/_authenticated/fingerprint/': {
+      id: '/_authenticated/fingerprint/'
+      path: '/fingerprint'
+      fullPath: '/fingerprint'
+      preLoaderRoute: typeof AuthenticatedFingerprintIndexLazyImport
+      parentRoute: typeof AuthenticatedImport
+    }
     '/_authenticated/students/': {
       id: '/_authenticated/students/'
       path: '/students'
@@ -209,6 +229,7 @@ export const routeTree = rootRoute.addChildren({
     AuthenticatedCasesPendingLazyRoute,
     AuthenticatedCasesIndexRoute,
     AuthenticatedRegisterIndexRoute,
+    AuthenticatedFingerprintIndexLazyRoute,
     AuthenticatedStudentsIndexLazyRoute,
   }),
   UnauthorizedRoute: UnauthorizedRoute.addChildren({
@@ -238,6 +259,7 @@ export const routeTree = rootRoute.addChildren({
         "/_authenticated/cases/pending",
         "/_authenticated/cases/",
         "/_authenticated/register/",
+        "/_authenticated/fingerprint/",
         "/_authenticated/students/"
       ]
     },
@@ -277,6 +299,10 @@ export const routeTree = rootRoute.addChildren({
     },
     "/_authenticated/register/": {
       "filePath": "_authenticated/register/index.tsx",
+      "parent": "/_authenticated"
+    },
+    "/_authenticated/fingerprint/": {
+      "filePath": "_authenticated/fingerprint/index.lazy.tsx",
       "parent": "/_authenticated"
     },
     "/_authenticated/students/": {
