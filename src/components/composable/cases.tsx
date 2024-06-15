@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/card";
 import { supabase } from "@/lib/supabase";
 import { Cases as TCase } from "@/services/service_case";
+import { useNavigate } from "@tanstack/react-router";
 import { Copy, SquareArrowOutUpRightIcon } from "lucide-react";
 import { useState } from "react";
 import { Textarea } from "../ui/textarea";
@@ -53,6 +54,8 @@ export const CaseCard = ({
     setCaseStatus("CLOSED");
     onStatusChange(case_id, "CLOSED");
   };
+
+  const navigate = useNavigate();
 
   return (
     <Card className="min-w-[250px] max-w-full col-span-12 sm:col-span-12 md:col-span-6 lg:col-span-4 overflow-hidden">
@@ -141,6 +144,17 @@ export const CaseCard = ({
               Mark as Pending
             </Button>
           )}
+          <Button
+            onClick={() =>
+              navigate({
+                to: `/cases/view/$caseid`,
+                params: { caseid: caseProps.case_id.toString() },
+              })
+            }
+            variant="link"
+          >
+            View <SquareArrowOutUpRightIcon className="w-4 h-4 ml-2" />
+          </Button>
         </div>
       </CardFooter>
     </Card>

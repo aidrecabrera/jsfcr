@@ -100,12 +100,12 @@ function Dashboard() {
             width="1920"
           />
           <div className="absolute inset-0 flex items-center justify-center bg-green-700 rounded-xl bg-opacity-65">
-            <div className="absolute top-0 left-0 flex flex-row items-center justify-center w-full h-full gap-3">
-              <h1 className="text-6xl font-bold text-center text-white text-ellipsis font-tight">
+            <div className="absolute top-0 left-0 flex flex-col items-center justify-center w-full h-full gap-3 px-4 sm:flex-row sm:px-0">
+              <h1 className="text-3xl font-bold text-center text-white sm:text-6xl text-ellipsis font-tight">
                 JH Cerilles State College
               </h1>
               <div className="h-16 border-2 b-r-white"></div>
-              <p className="text-6xl font-bold text-white font-tight">
+              <p className="text-3xl font-bold text-white sm:text-6xl font-tight">
                 JSFCR System
               </p>
             </div>
