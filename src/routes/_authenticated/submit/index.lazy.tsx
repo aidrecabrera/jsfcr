@@ -147,8 +147,7 @@ async function handleImageUpload(
 
 async function handleSubmission(
   form: ReturnType<typeof useForm>,
-  values: z.infer<typeof formSchema>,
-  navigate: any
+  values: z.infer<typeof formSchema>
 ) {
   let caseIdPar;
   console.log(values);
@@ -192,10 +191,7 @@ async function handleSubmission(
   });
 
   form.reset();
-  navigate({
-    to: `/cases/view/$caseid`,
-    params: { caseid: caseIdPar },
-  });
+  return caseIdPar;
 }
 
 async function getListOfAdmins() {
@@ -226,9 +222,16 @@ export function CaseSubmissionForm() {
           <form
             className="flex flex-col space-y-2"
             noValidate
-            onSubmit={form.handleSubmit((values) =>
-              handleSubmission(form, values, navigate)
-            )}
+            onSubmit={form.handleSubmit((values) => {
+              handleSubmission(form, values).then((id) => {
+                if (id) {
+                  navigate({
+                    to: "/cases/view/$caseid",
+                    params: { caseid: id },
+                  });
+                }
+              });
+            })}
           >
             <FormField
               control={form.control}
