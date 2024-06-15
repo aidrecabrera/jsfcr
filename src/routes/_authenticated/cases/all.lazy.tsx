@@ -14,7 +14,11 @@ import { TableType } from "@/types/types";
 import { createFileRoute } from "@tanstack/react-router";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { ArrowUpDown, MoreHorizontal, SquareArrowOutUpRightIcon } from "lucide-react";
+import {
+  ArrowUpDown,
+  MoreHorizontal,
+  SquareArrowOutUpRightIcon,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 
 type Cases = TableType<"cases">;

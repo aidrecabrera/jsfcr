@@ -21,6 +21,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { PostgrestSingleResponse } from "@supabase/supabase-js";
 import { createLazyFileRoute } from "@tanstack/react-router";
+import axios from "axios";
 import { decode } from "base64-arraybuffer";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -53,7 +54,8 @@ async function handleImageUpload(
   file: File,
   case_id: number,
   case_title: string,
-  case_location: string
+  case_location: string,
+  serverIp: string
 ) {
   const reader = new FileReader();
   reader.readAsDataURL(file);
@@ -61,19 +63,32 @@ async function handleImageUpload(
     /\s+/g,
     "_"
   );
+
   return new Promise((resolve, reject) => {
     reader.onload = async () => {
       if (typeof reader.result === "string") {
         const base64FileData = reader.result.split(",")[1];
-        const { data, error } = await supabase.storage
+        const { error: uploadError } = await supabase.storage
           .from("evidences")
           .upload(`public/${evidenceFileName}`, decode(base64FileData), {
             contentType: file.type,
           });
+
+        if (uploadError) {
+          reject(uploadError);
+          return;
+        }
+
         const { data: linkUrl } = supabase.storage
           .from("evidences")
           .getPublicUrl(`public/${evidenceFileName}`);
-        const { data: insertData, error: insertError } = await supabase
+
+        if (!linkUrl?.publicUrl) {
+          reject(new Error("Failed to get public URL for the uploaded image."));
+          return;
+        }
+
+        const { error: updateError } = await supabase
           .from("cases")
           .update({
             case_evidence: linkUrl.publicUrl,
@@ -81,15 +96,46 @@ async function handleImageUpload(
           .eq("case_id", case_id)
           .select("case_id, case_evidence")
           .single();
-        console.log(insertData, insertError);
-        if (error) {
-          reject(error);
-        } else {
-          if (typeof data === "object" && data !== null && "path" in data) {
-            resolve(data);
-          } else {
-            reject(new Error("Invalid data received from upload"));
+
+        if (updateError) {
+          reject(updateError);
+          return;
+        }
+
+        try {
+          const response = await axios.post(
+            `http://${serverIp}:5152/match-url`,
+            {
+              imageUrl: linkUrl.publicUrl,
+              topN: 3,
+            },
+            {
+              headers: {
+                "Content-Type": "application/json",
+              },
+            }
+          );
+
+          const formattedSuspects = response.data.suspects.map(
+            (suspect: any) => ({
+              case_id: case_id,
+              student_id: suspect.student_id,
+              suspect_result_confidence: suspect.confidence,
+            })
+          );
+
+          const { error: insertError } = await supabase
+            .from("case_suspects")
+            .insert(formattedSuspects);
+
+          if (insertError) {
+            reject(insertError);
+            return;
           }
+
+          resolve(response.data);
+        } catch (matchError) {
+          reject(matchError);
         }
       } else {
         reject(new Error("FileReader result is not a string"));
@@ -129,8 +175,10 @@ async function handleSubmission(
         file,
         data.case_id,
         data.case_title,
-        data.case_location
+        data.case_location,
+        "localhost"
       );
+      console.log(uploadResponse);
     }
   };
 
