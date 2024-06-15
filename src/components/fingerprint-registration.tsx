@@ -1,5 +1,7 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Link1Icon } from "@radix-ui/react-icons";
+import { Button } from "./ui/button";
 import {
   Card,
   CardContent,
@@ -31,6 +33,19 @@ export function FingerprintRegistration({ handleFileChange }: any) {
         </CardDescription>
       </CardHeader>
       <CardContent>
+        <Button
+          onClick={() => {
+            window.open("http://localhost:5152/scan", "_blank");
+          }}
+          type="button"
+          variant="link"
+          className="-mt-4 -ml-4"
+        >
+          Click here to scan your fingerprint{" "}
+          <span className="ml-2">
+            <Link1Icon />
+          </span>
+        </Button>
         <div className="grid grid-cols-2 gap-4 py-4">
           {fingerNames.map((finger) => (
             <div key={finger} className="space-y-2">
