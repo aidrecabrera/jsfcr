@@ -20,7 +20,7 @@ import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { PostgrestSingleResponse } from "@supabase/supabase-js";
-import { createLazyFileRoute } from "@tanstack/react-router";
+import { createLazyFileRoute, useNavigate } from "@tanstack/react-router";
 import axios from "axios";
 import { decode } from "base64-arraybuffer";
 import { useEffect, useState } from "react";
@@ -147,8 +147,10 @@ async function handleImageUpload(
 
 async function handleSubmission(
   form: ReturnType<typeof useForm>,
-  values: z.infer<typeof formSchema>
+  values: z.infer<typeof formSchema>,
+  navigate: any
 ) {
+  let caseIdPar;
   console.log(values);
   const myPromise = async () => {
     const { data, error }: PostgrestSingleResponse<any> = await supabase
@@ -178,6 +180,7 @@ async function handleSubmission(
         data.case_location,
         "localhost"
       );
+      caseIdPar = data.case_id;
       console.log(uploadResponse);
     }
   };
@@ -189,6 +192,10 @@ async function handleSubmission(
   });
 
   form.reset();
+  navigate({
+    to: `/cases/view/$caseid`,
+    params: { caseid: caseIdPar },
+  });
 }
 
 async function getListOfAdmins() {
@@ -207,6 +214,8 @@ export function CaseSubmissionForm() {
       .catch((error) => console.error("Failed to fetch admins:", error));
   }, []);
 
+  const navigate = useNavigate();
+
   return (
     <Card className="w-full max-w-4xl">
       <CardHeader>
@@ -218,7 +227,7 @@ export function CaseSubmissionForm() {
             className="flex flex-col space-y-2"
             noValidate
             onSubmit={form.handleSubmit((values) =>
-              handleSubmission(form, values)
+              handleSubmission(form, values, navigate)
             )}
           >
             <FormField

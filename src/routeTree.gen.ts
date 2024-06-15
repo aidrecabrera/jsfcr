@@ -17,6 +17,7 @@ import { Route as UnauthorizedImport } from './routes/_unauthorized'
 import { Route as AuthenticatedImport } from './routes/_authenticated'
 import { Route as AuthenticatedRegisterIndexImport } from './routes/_authenticated/register/index'
 import { Route as AuthenticatedCasesIndexImport } from './routes/_authenticated/cases/index'
+import { Route as AuthenticatedCasesViewCaseidImport } from './routes/_authenticated/cases/view/$caseid'
 
 // Create Virtual Routes
 
@@ -138,6 +139,12 @@ const AuthenticatedCasesAllLazyRoute = AuthenticatedCasesAllLazyImport.update({
   import('./routes/_authenticated/cases/all.lazy').then((d) => d.Route),
 )
 
+const AuthenticatedCasesViewCaseidRoute =
+  AuthenticatedCasesViewCaseidImport.update({
+    path: '/cases/view/$caseid',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+
 // Populate the FileRoutesByPath interface
 
 declare module '@tanstack/react-router' {
@@ -233,6 +240,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSubmitIndexLazyImport
       parentRoute: typeof AuthenticatedImport
     }
+    '/_authenticated/cases/view/$caseid': {
+      id: '/_authenticated/cases/view/$caseid'
+      path: '/cases/view/$caseid'
+      fullPath: '/cases/view/$caseid'
+      preLoaderRoute: typeof AuthenticatedCasesViewCaseidImport
+      parentRoute: typeof AuthenticatedImport
+    }
   }
 }
 
@@ -250,6 +264,7 @@ export const routeTree = rootRoute.addChildren({
     AuthenticatedFingerprintIndexLazyRoute,
     AuthenticatedStudentsIndexLazyRoute,
     AuthenticatedSubmitIndexLazyRoute,
+    AuthenticatedCasesViewCaseidRoute,
   }),
   UnauthorizedRoute: UnauthorizedRoute.addChildren({
     UnauthorizedLoginLazyRoute,
@@ -280,7 +295,8 @@ export const routeTree = rootRoute.addChildren({
         "/_authenticated/register/",
         "/_authenticated/fingerprint/",
         "/_authenticated/students/",
-        "/_authenticated/submit/"
+        "/_authenticated/submit/",
+        "/_authenticated/cases/view/$caseid"
       ]
     },
     "/_unauthorized": {
@@ -331,6 +347,10 @@ export const routeTree = rootRoute.addChildren({
     },
     "/_authenticated/submit/": {
       "filePath": "_authenticated/submit/index.lazy.tsx",
+      "parent": "/_authenticated"
+    },
+    "/_authenticated/cases/view/$caseid": {
+      "filePath": "_authenticated/cases/view/$caseid.tsx",
       "parent": "/_authenticated"
     }
   }
