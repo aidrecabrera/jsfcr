@@ -117,7 +117,18 @@ const columns: ColumnDef<Cases>[] = [
   {
     accessorKey: "case_evidence",
     header: "Evidence",
-    cell: ({ row }) => <div>{row.getValue("case_evidence")}</div>,
+    cell: ({ row }) => (
+      <div>
+        <a href={row.getValue("case_evidence")} target="_blank">
+          <Button className="-mr-4" variant="link">
+            View Evidence{" "}
+            <span>
+              <SquareArrowOutUpRightIcon className="w-4 h-4 ml-2" />
+            </span>
+          </Button>
+        </a>
+      </div>
+    ),
     enableSorting: false,
   },
   {
