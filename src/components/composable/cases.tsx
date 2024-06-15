@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/card";
 import { supabase } from "@/lib/supabase";
 import { Cases as TCase } from "@/services/service_case";
-import { Copy } from "lucide-react";
+import { Copy, SquareArrowOutUpRightIcon } from "lucide-react";
 import { useState } from "react";
 import { Textarea } from "../ui/textarea";
 
@@ -55,7 +55,7 @@ export const CaseCard = ({
   };
 
   return (
-    <Card className="max-h-[508px] min-w-[250px] max-w-full col-span-12 sm:col-span-12 md:col-span-6 lg:col-span-3 overflow-hidden">
+    <Card className="min-w-[250px] max-w-full col-span-12 sm:col-span-12 md:col-span-6 lg:col-span-3 overflow-hidden">
       <CardHeader className="flex flex-row items-start bg-muted/50">
         <div className="grid gap-0.5">
           <CardTitle className="flex items-center gap-2 text-lg group">
@@ -99,15 +99,18 @@ export const CaseCard = ({
             </li>
             <li className="flex items-center justify-between">
               <span className="text-muted-foreground">Evidence</span>
-              <span>{caseProps.case_evidence}</span>
+              <a href={caseProps.case_evidence} target="_blank">
+                <Button className="-mr-4" variant="link">
+                  View Evidence{" "}
+                  <span>
+                    <SquareArrowOutUpRightIcon className="w-4 h-4 ml-2" />
+                  </span>
+                </Button>
+              </a>
             </li>
             <li className="flex items-center justify-between">
               <span className="text-muted-foreground">Uploader ID</span>
               <span>{caseProps.case_uploader_id || "N/A"}</span>
-            </li>
-            <li className="flex items-center justify-between">
-              <span className="text-muted-foreground">Suspect</span>
-              <span>{caseProps.case_suspect || "N/A"}</span>
             </li>
             <li className="flex items-center justify-between">
               <span className="text-muted-foreground">Status</span>

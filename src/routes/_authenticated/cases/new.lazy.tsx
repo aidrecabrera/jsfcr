@@ -26,6 +26,7 @@ export const Route = createLazyFileRoute("/_authenticated/cases/new")({
     }, []);
 
     const handleStatusChange = (caseId: string, newStatus: string) => {
+      // @ts-nocheck
       setData((prevData) =>
         prevData.map((item) =>
           item.case_id === parseInt(caseId)

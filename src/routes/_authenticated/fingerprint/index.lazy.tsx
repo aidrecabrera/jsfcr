@@ -10,6 +10,7 @@ import { Separator } from "@radix-ui/react-dropdown-menu";
 import { createLazyFileRoute } from "@tanstack/react-router";
 import axios from "axios";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import "tailwindcss/tailwind.css";
 
 function Fingerprint() {
@@ -44,11 +45,10 @@ function Fingerprint() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setError(null);
     setResults(null);
 
-    try {
+    const submissionPromise = (async () => {
       let response;
       const serverUrl = `http://${serverIp}:5152`;
 
@@ -76,12 +76,20 @@ function Fingerprint() {
         throw new Error("Please provide either an image URL or upload a file.");
       }
 
-      setResults(response.data);
-    } catch (err: any) {
-      setError(err.response?.data || err.message || "An error occurred");
-    } finally {
-      setLoading(false);
-    }
+      return response.data;
+    })();
+
+    toast.promise(submissionPromise, {
+      loading: "Scanning...",
+      success: (data) => {
+        setResults(data);
+        return "Scanned Successfully!";
+      },
+      error: (error) => {
+        setError(error.message || "An error occurred");
+        return "Submission failed!";
+      },
+    });
   };
 
   const fetchEvidences = async () => {
