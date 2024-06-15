@@ -20,7 +20,13 @@ function Fingerprint() {
   const [error, setError] = useState(null);
 
   const handleFileChange = (e) => {
-    setImageFile(e.target.files[0]);
+    const file = e.target.files[0];
+    if (file && file.type !== "image/png") {
+      setError("Only PNG files are allowed");
+      setImageFile(null);
+      return;
+    }
+    setImageFile(file);
     setImageUrl("");
   };
 
@@ -40,7 +46,8 @@ function Fingerprint() {
       if (imageFile) {
         const formData = new FormData();
         formData.append("file", imageFile);
-        formData.append("topN", topN as any);
+        formData.append("topN", topN as unknown as string);
+
         response = await axios.post(
           "http://localhost:5152/match-file",
           formData,
@@ -51,7 +58,6 @@ function Fingerprint() {
           }
         );
       } else if (imageUrl) {
-        // Submit URL
         response = await axios.post(
           "http://localhost:5152/match-url",
           {
@@ -77,7 +83,7 @@ function Fingerprint() {
   };
 
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 ">
+    <div className="grid w-full grid-cols-1 gap-4 lg:grid-cols-2">
       {error && <p className="mt-4 text-sm italic text-red-500">{error}</p>}
 
       <Card className="col-span-1">
@@ -86,19 +92,23 @@ function Fingerprint() {
         </CardHeader>
         <CardContent className="flex flex-col items-center justify-center">
           <Card className="w-full h-full p-8">
-            <CardContent className="w-full h-full">
+            <CardContent className="flex items-center justify-center w-full h-full">
               {imageUrl && (
                 <img
                   src={imageUrl}
                   alt="Fingerprint preview"
-                  className="h-auto max-w-full"
+                  width={300}
+                  height={300}
+                  className="h-full min-w-full min-h-full"
                 />
               )}
               {imageFile && (
                 <img
                   src={URL.createObjectURL(imageFile)}
                   alt="Fingerprint preview"
-                  className="h-auto max-w-full"
+                  width={300}
+                  height={300}
+                  className="h-full min-w-full min-h-full"
                 />
               )}
             </CardContent>
@@ -132,7 +142,7 @@ function Fingerprint() {
                 <Input
                   type="file"
                   id="file"
-                  accept="image/*"
+                  accept="image/png"
                   onChange={handleFileChange}
                   disabled={!!imageUrl}
                 />
