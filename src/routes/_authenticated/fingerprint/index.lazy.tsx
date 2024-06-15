@@ -14,34 +14,35 @@ import "tailwindcss/tailwind.css";
 
 function Fingerprint() {
   const [imageUrl, setImageUrl] = useState("");
-  const [imageFile, setImageFile] = useState(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [topN, setTopN] = useState(3);
-  const [results, setResults] = useState(null);
+  const [results, setResults] = useState<any | null>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const [serverIp, setServerIp] = useState("localhost");
+  const [allEvidences, setAllEvidences] = useState<any[]>([]);
 
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
     if (file && file.type !== "image/png") {
       setError("Only PNG files are allowed");
       setImageFile(null);
-      return;
+    } else {
+      setImageFile(file);
+      setImageUrl("");
     }
-    setImageFile(file);
-    setImageUrl("");
   };
 
-  const handleUrlChange = (e) => {
+  const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setImageUrl(e.target.value);
     setImageFile(null);
   };
 
-  const handleServerIpChange = (e) => {
+  const handleServerIpChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setServerIp(e.target.value);
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
@@ -54,7 +55,7 @@ function Fingerprint() {
       if (imageFile) {
         const formData = new FormData();
         formData.append("file", imageFile);
-        formData.append("topN", topN as unknown as string);
+        formData.append("topN", topN.toString());
 
         response = await axios.post(`${serverUrl}/match-file`, formData, {
           headers: {
@@ -64,10 +65,7 @@ function Fingerprint() {
       } else if (imageUrl) {
         response = await axios.post(
           `${serverUrl}/match-url`,
-          {
-            imageUrl,
-            topN,
-          },
+          { imageUrl, topN },
           {
             headers: {
               "Content-Type": "application/json",
@@ -79,14 +77,12 @@ function Fingerprint() {
       }
 
       setResults(response.data);
-    } catch (err) {
+    } catch (err: any) {
       setError(err.response?.data || err.message || "An error occurred");
     } finally {
       setLoading(false);
     }
   };
-
-  const [allEvidences, setAllEvidences] = useState([]);
 
   const fetchEvidences = async () => {
     const { data: evidences, error } = await supabase
@@ -99,9 +95,13 @@ function Fingerprint() {
     }
   };
 
+  const handleEvidenceClick = (url: string) => {
+    setImageUrl(url);
+    setImageFile(null);
+  };
+
   useEffect(() => {
     fetchEvidences();
-    console.log(allEvidences);
   }, []);
 
   return (
@@ -220,41 +220,80 @@ function Fingerprint() {
         </CardHeader>
         {results && <ResultCard results={results} />}
       </Card>
+      <Card>
+        <CardHeader>
+          <h3 className="text-lg font-semibold">Browse Existing Evidence</h3>
+        </CardHeader>
+        <CardContent className="mt-4">
+          <EvidenceList
+            evidences={allEvidences}
+            onEvidenceClick={handleEvidenceClick}
+          />
+        </CardContent>
+      </Card>
     </div>
   );
 }
 
-const ResultCard = ({ results }) => (
+const ResultCard = ({ results }: { results: any }) => (
   <CardContent className="grid gap-4">
-    {results &&
-      results.suspects.map((suspect) => (
-        <Card key={suspect.suspect_id}>
-          <CardContent className="flex items-center gap-4 mt-5">
-            <a href={suspect.url}>
-              <img
-                src={suspect.url || "/placeholder.svg"}
-                alt={`Suspect ${suspect.suspect_id}`}
-                width={64}
-                height={64}
-                className="rounded-md"
-              />
-            </a>
-            <div className="grid flex-1 gap-1">
-              <div className="flex items-center justify-between">
-                <div className="font-medium">
-                  Suspect ID: {suspect.suspect_id}
-                </div>
-                <div className="text-sm text-gray-500 dark:text-gray-400">
-                  Confidence: {suspect.confidence.toFixed(2)}%
-                </div>
+    {results.suspects.map((suspect: any) => (
+      <Card key={suspect.suspect_id}>
+        <CardContent className="flex items-center gap-4 mt-5">
+          <a href={suspect.url}>
+            <img
+              src={suspect.url || "/placeholder.svg"}
+              alt={`Suspect ${suspect.suspect_id}`}
+              width={64}
+              height={64}
+              className="rounded-md"
+            />
+          </a>
+          <div className="grid flex-1 gap-1">
+            <div className="flex items-center justify-between">
+              <div className="font-medium">
+                Suspect ID: {suspect.suspect_id}
               </div>
               <div className="text-sm text-gray-500 dark:text-gray-400">
-                Student ID: {suspect.student_id}
+                Confidence: {suspect.confidence.toFixed(2)}%
               </div>
             </div>
-          </CardContent>
-        </Card>
-      ))}
+            <div className="text-sm text-gray-500 dark:text-gray-400">
+              Student ID: {suspect.student_id}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    ))}
+  </CardContent>
+);
+
+const EvidenceList = ({
+  evidences,
+  onEvidenceClick,
+}: {
+  evidences: any[];
+  onEvidenceClick: (url: string) => void;
+}) => (
+  <CardContent className="grid gap-4">
+    {evidences.map((evidence, index) => (
+      <Card
+        key={index}
+        className="cursor-pointer"
+        onClick={() => onEvidenceClick(evidence.case_evidence)}
+      >
+        <CardContent className="flex flex-col items-center gap-2">
+          <img
+            src={evidence.case_evidence}
+            alt={`Evidence ${index + 1}`}
+            className="object-cover w-64 h-64"
+          />
+          <div className="text-sm text-blue-500 underline">
+            Click to use this image
+          </div>
+        </CardContent>
+      </Card>
+    ))}
   </CardContent>
 );
 
