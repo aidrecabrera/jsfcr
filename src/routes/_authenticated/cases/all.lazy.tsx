@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DataTable } from "@/components/ui/data-table";
@@ -16,7 +14,7 @@ import { TableType } from "@/types/types";
 import { createFileRoute } from "@tanstack/react-router";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { ArrowUpDown, MoreHorizontal } from "lucide-react";
+import { ArrowUpDown, MoreHorizontal, SquareArrowOutUpRightIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
 type Cases = TableType<"cases">;
