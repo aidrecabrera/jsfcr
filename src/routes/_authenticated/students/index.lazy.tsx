@@ -137,7 +137,7 @@ const columns: ColumnDef<Students>[] = [
               <DropdownMenuSeparator />
               <DialogTrigger asChild>
                 <DropdownMenuItem>
-                  <span>Delete</span>
+                  <span>View Details</span>
                 </DropdownMenuItem>
               </DialogTrigger>
             </DropdownMenuContent>
