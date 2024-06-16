@@ -55,7 +55,7 @@ const CaseDetails = ({ caseId }) => {
   }
 
   return (
-    <div className="p-4 grid grid-cols-2 gap-4 w-full">
+    <div className="p-4 grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
       <Card className="mb-4">
         <CardHeader>
           <div>
