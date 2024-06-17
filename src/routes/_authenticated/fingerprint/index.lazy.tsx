@@ -25,10 +25,7 @@ function Fingerprint() {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file && file.type !== "image/png") {
-      setError("Only PNG files are allowed");
-      setImageFile(null);
-    } else {
+    if (file) {
       setImageFile(file);
       setImageUrl("");
     }
