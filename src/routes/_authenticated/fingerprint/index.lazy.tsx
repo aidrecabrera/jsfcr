@@ -168,7 +168,6 @@ function Fingerprint() {
                 <Input
                   type="file"
                   id="file"
-                  accept="image/png"
                   onChange={handleFileChange}
                   disabled={!!imageUrl}
                 />
