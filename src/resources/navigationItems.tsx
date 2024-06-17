@@ -115,7 +115,6 @@ export const managementNavItemsMobile = [
     to: "/cases/pending",
     icon: <PcCaseIcon className="w-5 h-5" />,
     label: "Pending Cases",
-    badge: 6,
     className:
       "mx-[-0.65rem] flex items-center gap-4 rounded-xl bg-muted px-3 py-2 text-foreground hover:text-foreground",
   },
