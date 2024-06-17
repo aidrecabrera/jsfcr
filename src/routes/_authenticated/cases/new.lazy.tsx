@@ -25,8 +25,10 @@ export const Route = createLazyFileRoute("/_authenticated/cases/new")({
       fetchCases();
     }, []);
 
-    const handleStatusChange = (caseId: string, newStatus: string) => {
-      // @ts-nocheck
+    const handleStatusChange = (
+      caseId: string,
+      newStatus: "NEW" | "PENDING" | "CLOSED"
+    ) => {
       setData((prevData) =>
         prevData.map((item) =>
           item.case_id === parseInt(caseId)
@@ -36,7 +38,6 @@ export const Route = createLazyFileRoute("/_authenticated/cases/new")({
       );
       fetchCases();
     };
-
     return (
       <div className="flex flex-col w-full gap-1">
         <div className="mb-4">

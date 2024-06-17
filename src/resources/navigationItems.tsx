@@ -7,6 +7,7 @@ import {
   PackageIcon,
   PcCaseIcon,
   UsersIcon,
+  UserX2Icon,
 } from "lucide-react";
 
 export const casesNavItems = [
@@ -53,11 +54,11 @@ export const managementNavItems = [
     icon: <UsersIcon className="w-4 h-4" />,
     label: "Closed Cases",
   },
-  // {
-  //   to: "/cases/history",
-  //   icon: <LineChartIcon className="w-4 h-4" />,
-  //   label: "Case History",
-  // },
+  {
+    to: "/cases/suspects",
+    icon: <UserX2Icon className="w-4 h-4" />,
+    label: "Cases with Match",
+  },
 ];
 
 export const matchFingerprint = [
@@ -125,14 +126,11 @@ export const managementNavItemsMobile = [
     className:
       "mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground",
   },
-
-  // {
-  //   to: "/cases/history",
-  //   icon: <LineChartIcon className="w-5 h-5" />,
-  //   label: "Case History",
-  //   className:
-  //     "mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground",
-  // },
+  {
+    to: "/cases/suspects",
+    icon: <UserX2Icon className="w-5 h-5" />,
+    label: "Cases with Match",
+  },
 ];
 
 export const fingerprintMatchMobile = [

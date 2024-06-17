@@ -18,6 +18,7 @@ import { Route as AuthenticatedImport } from './routes/_authenticated'
 import { Route as AuthenticatedRegisterIndexImport } from './routes/_authenticated/register/index'
 import { Route as AuthenticatedCasesIndexImport } from './routes/_authenticated/cases/index'
 import { Route as AuthenticatedCasesViewCaseidImport } from './routes/_authenticated/cases/view/$caseid'
+import { Route as AuthenticatedCasesSuspectsCasesuspectsImport } from './routes/_authenticated/cases/suspects/$casesuspects'
 
 // Create Virtual Routes
 
@@ -43,6 +44,9 @@ const AuthenticatedCasesClosedLazyImport = createFileRoute(
 )()
 const AuthenticatedCasesAllLazyImport = createFileRoute(
   '/_authenticated/cases/all',
+)()
+const AuthenticatedCasesSuspectsIndexLazyImport = createFileRoute(
+  '/_authenticated/cases/suspects/',
 )()
 
 // Create/Update Routes
@@ -139,9 +143,25 @@ const AuthenticatedCasesAllLazyRoute = AuthenticatedCasesAllLazyImport.update({
   import('./routes/_authenticated/cases/all.lazy').then((d) => d.Route),
 )
 
+const AuthenticatedCasesSuspectsIndexLazyRoute =
+  AuthenticatedCasesSuspectsIndexLazyImport.update({
+    path: '/cases/suspects/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any).lazy(() =>
+    import('./routes/_authenticated/cases/suspects/index.lazy').then(
+      (d) => d.Route,
+    ),
+  )
+
 const AuthenticatedCasesViewCaseidRoute =
   AuthenticatedCasesViewCaseidImport.update({
     path: '/cases/view/$caseid',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+
+const AuthenticatedCasesSuspectsCasesuspectsRoute =
+  AuthenticatedCasesSuspectsCasesuspectsImport.update({
+    path: '/cases/suspects/$casesuspects',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
 
@@ -240,11 +260,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSubmitIndexLazyImport
       parentRoute: typeof AuthenticatedImport
     }
+    '/_authenticated/cases/suspects/$casesuspects': {
+      id: '/_authenticated/cases/suspects/$casesuspects'
+      path: '/cases/suspects/$casesuspects'
+      fullPath: '/cases/suspects/$casesuspects'
+      preLoaderRoute: typeof AuthenticatedCasesSuspectsCasesuspectsImport
+      parentRoute: typeof AuthenticatedImport
+    }
     '/_authenticated/cases/view/$caseid': {
       id: '/_authenticated/cases/view/$caseid'
       path: '/cases/view/$caseid'
       fullPath: '/cases/view/$caseid'
       preLoaderRoute: typeof AuthenticatedCasesViewCaseidImport
+      parentRoute: typeof AuthenticatedImport
+    }
+    '/_authenticated/cases/suspects/': {
+      id: '/_authenticated/cases/suspects/'
+      path: '/cases/suspects'
+      fullPath: '/cases/suspects'
+      preLoaderRoute: typeof AuthenticatedCasesSuspectsIndexLazyImport
       parentRoute: typeof AuthenticatedImport
     }
   }
@@ -264,7 +298,9 @@ export const routeTree = rootRoute.addChildren({
     AuthenticatedFingerprintIndexLazyRoute,
     AuthenticatedStudentsIndexLazyRoute,
     AuthenticatedSubmitIndexLazyRoute,
+    AuthenticatedCasesSuspectsCasesuspectsRoute,
     AuthenticatedCasesViewCaseidRoute,
+    AuthenticatedCasesSuspectsIndexLazyRoute,
   }),
   UnauthorizedRoute: UnauthorizedRoute.addChildren({
     UnauthorizedLoginLazyRoute,
@@ -296,7 +332,9 @@ export const routeTree = rootRoute.addChildren({
         "/_authenticated/fingerprint/",
         "/_authenticated/students/",
         "/_authenticated/submit/",
-        "/_authenticated/cases/view/$caseid"
+        "/_authenticated/cases/suspects/$casesuspects",
+        "/_authenticated/cases/view/$caseid",
+        "/_authenticated/cases/suspects/"
       ]
     },
     "/_unauthorized": {
@@ -349,8 +387,16 @@ export const routeTree = rootRoute.addChildren({
       "filePath": "_authenticated/submit/index.lazy.tsx",
       "parent": "/_authenticated"
     },
+    "/_authenticated/cases/suspects/$casesuspects": {
+      "filePath": "_authenticated/cases/suspects/$casesuspects.tsx",
+      "parent": "/_authenticated"
+    },
     "/_authenticated/cases/view/$caseid": {
       "filePath": "_authenticated/cases/view/$caseid.tsx",
+      "parent": "/_authenticated"
+    },
+    "/_authenticated/cases/suspects/": {
+      "filePath": "_authenticated/cases/suspects/index.lazy.tsx",
       "parent": "/_authenticated"
     }
   }
