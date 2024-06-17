@@ -32,7 +32,7 @@ const renderNavItems = (navItems: any[]) =>
   ));
 
 export const Navigation = () => (
-  <div className="flex-1">
+  <div className="flex-1 print:hidden">
     <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
       <div className="space-y-2">{renderNavItems(casesNavItems)}</div>
       <Separator className="mt-2 mb-3" />
@@ -44,7 +44,7 @@ export const Navigation = () => (
 );
 
 export const NavigationMobile = () => (
-  <nav className="grid gap-2 text-lg font-medium">
+  <nav className="grid gap-2 text-lg font-medium print:hidden">
     <div className="space-y-2">{renderNavItems(casesNavItemsMobile)}</div>
     <Separator />
     <div className="space-y-2">{renderNavItems(managementNavItemsMobile)}</div>

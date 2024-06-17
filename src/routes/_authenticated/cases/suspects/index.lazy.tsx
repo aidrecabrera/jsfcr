@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { supabase } from "@/lib/supabase";
 import { TableType } from "@/types/types";
 import { createLazyFileRoute, useNavigate } from "@tanstack/react-router";
-import { SquareArrowUpRightIcon } from "lucide-react";
+import { PrinterIcon, SquareArrowUpRightIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export const Route = createLazyFileRoute("/_authenticated/cases/suspects/")({
@@ -90,14 +90,23 @@ function CaseSuspects() {
 
   return (
     <div className="flex flex-col w-full gap-4">
-      <div className="mb-4">
-        <h1 className="text-2xl font-bold">Cases with Match</h1>
-        <p className="text-sm text-muted-foreground">
-          View all cases in the system with match.
-        </p>
+      <div className="flex flex-row justify-between mb-4">
+        <div>
+          <h1 className="text-2xl font-bold">Cases with Match</h1>
+          <p className="text-sm text-muted-foreground">
+            View all cases in the system with match.
+          </p>
+        </div>
+        <div className="print:hidden">
+          <Button onClick={() => window.print()} variant="outline">
+            Print
+            <PrinterIcon className="w-4 h-4 ml-2" />
+          </Button>
+        </div>
       </div>
       <div>
         <Input
+          className="print:hidden"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           type="text"
@@ -118,7 +127,7 @@ function CaseSuspects() {
                     })
                   }
                   variant="link"
-                  className="-ml-4"
+                  className="-ml-4 print:hidden"
                 >
                   View Case
                   <SquareArrowUpRightIcon className="w-4 h-4 ml-2" />
@@ -138,7 +147,7 @@ function CaseSuspects() {
                 {c.case_description}
               </p>
             </CardHeader>
-            <CardContent>
+            <CardContent className="print:hidden">
               <Accordion type="single" collapsible>
                 <AccordionItem value="item-1">
                   <AccordionTrigger>
@@ -172,6 +181,33 @@ function CaseSuspects() {
                   </AccordionContent>
                 </AccordionItem>
               </Accordion>
+            </CardContent>
+            <CardContent className="hidden print:block">
+              <div className="flex flex-col gap-4">
+                {listOfSuspects
+                  .filter((s) => s.case_id === c.case_id)
+                  .map((s, index) => (
+                    <Card key={index}>
+                      <CardHeader>
+                        <CardTitle className="text-sm">
+                          {`${s.student_name} ${s.student_middle_name} ${s.student_family_name}`}
+                        </CardTitle>
+                        <p>{`${s.student_year} ${s.student_course}`}</p>
+                      </CardHeader>
+                      <CardContent className="-mt-2">
+                        <Badge
+                          variant={
+                            s.suspect_result_confidence > 20
+                              ? "destructive"
+                              : "outline"
+                          }
+                        >
+                          Confidence: {s.suspect_result_confidence.toFixed(2)}
+                        </Badge>
+                      </CardContent>
+                    </Card>
+                  ))}
+              </div>
             </CardContent>
           </Card>
         ))}

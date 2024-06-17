@@ -32,14 +32,38 @@ export const handleFileChange =
   (e: { target: { id: string; files: FileList } }) => {
     const { id, files } = e.target;
     if (files && files[0]) {
+      const file = files[0];
       const reader = new FileReader();
       reader.onload = () => {
-        form.setValue(
-          `fingerprints.${id}`,
-          encode(reader.result as ArrayBuffer)
-        );
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext("2d");
+          if (ctx) {
+            ctx.drawImage(img, 0, 0);
+            canvas.toBlob(
+              (blob) => {
+                if (blob) {
+                  const fileReader = new FileReader();
+                  fileReader.onload = () => {
+                    form.setValue(
+                      `fingerprints.${id}`,
+                      encode(fileReader.result as ArrayBuffer)
+                    );
+                  };
+                  fileReader.readAsArrayBuffer(blob);
+                }
+              },
+              "image/png",
+              1.0
+            );
+          }
+        };
+        img.src = reader.result as string;
       };
-      reader.readAsArrayBuffer(files[0]);
+      reader.readAsDataURL(file);
     }
   };
 

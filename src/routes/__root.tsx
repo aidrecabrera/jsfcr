@@ -5,7 +5,9 @@ export const Route = createRootRoute({
   component: () => (
     <>
       <Outlet />
-      <TanStackRouterDevtools />
+      <div className="print:hidden">
+        <TanStackRouterDevtools />
+      </div>
       <Toaster position="bottom-center" expand richColors />
     </>
   ),
