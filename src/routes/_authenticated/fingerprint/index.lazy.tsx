@@ -26,8 +26,30 @@ function Fingerprint() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setImageFile(file);
-      setImageUrl("");
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext("2d");
+          ctx?.drawImage(img, 0, 0);
+          canvas.toBlob((blob) => {
+            if (blob) {
+              const pngFile = new File(
+                [blob],
+                file.name.replace(/\.[^.]+$/, ".png"),
+                { type: "image/png" }
+              );
+              setImageFile(pngFile);
+              setImageUrl("");
+            }
+          }, "image/png");
+        };
+        img.src = event.target?.result as string;
+      };
+      reader.readAsDataURL(file);
     }
   };
 
