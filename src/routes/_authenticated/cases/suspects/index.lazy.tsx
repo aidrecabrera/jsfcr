@@ -1,15 +1,17 @@
-import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/lib/supabase";
-import { createLazyFileRoute } from "@tanstack/react-router";
-import { SquareArrowOutUpRightIcon } from "lucide-react";
+import { TableType } from "@/types/types";
+import { createLazyFileRoute, useNavigate } from "@tanstack/react-router";
+import { SquareArrowUpRightIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export const Route = createLazyFileRoute("/_authenticated/cases/suspects/")({
@@ -19,90 +21,68 @@ export const Route = createLazyFileRoute("/_authenticated/cases/suspects/")({
 export interface CaseData {
   case_suspects_id: number;
   created_at: Date;
-  student_id: StudentID;
-  case_id: CaseID;
-  suspect_result_confidence: number;
-}
-
-export interface CaseID {
-  case_id: number;
-  case_title: string;
-  case_status: string;
-  case_evidence: string;
-  case_location: string;
-  case_date_time: Date;
-  case_description: string;
-  case_uploader_id: number;
-}
-
-export interface StudentID {
-  student_id: string;
-  student_uid: number;
+  student_id: number;
   student_name: string;
-  student_year: string;
-  student_course: string;
-  student_region: string;
-  student_suffix: string;
-  date_registered: Date;
-  student_address: string;
-  student_barangay: string;
-  student_province: string;
-  student_zip_code: string;
-  student_municipal: string;
-  student_family_name: string;
   student_middle_name: string;
+  student_family_name: string;
+  student_course: string;
+  student_year: string;
+  student_address: string;
+  student_zip_code: string;
+  date_registered: Date;
+  student_province: string;
+  student_barangay: string;
+  student_municipal: string;
+  student_region: string;
+  case_id: number;
+  suspect_result_confidence: number;
+  case_evidence: string;
 }
 
-async function getAllCaseSuspects() {
-  const { data, error } = await supabase
-    .from("case_suspects")
-    .select("*, case_id(*), student_id(*)");
+async function getAllCases() {
+  const { data, error } = await supabase.from("vw_case").select("*");
   if (error) throw error;
   return data as CaseData[];
 }
 
-async function getAllCasesWithSuspectInformation() {
-  const { data, error } = await supabase.from("case_suspects").select(
-    `
-    case_id(*),
-    student_id(*),
-    suspect_result_confidence
-    `
-  );
+async function getAllCasesId() {
+  const { data, error } = await supabase.from("cases").select("*");
   if (error) throw error;
   return data;
 }
 
 function CaseSuspects() {
-  const [allSuspects, setAllSuspects] = useState<CaseData[]>([]);
   const [search, setSearch] = useState("");
-  const [filteredSuspects, setFilteredSuspects] = useState<CaseData[]>([]);
+  const [cases, setCases] = useState<CaseData[]>([]);
+  const [casesId, setCasesId] = useState<TableType<"cases">[]>([]);
+
+  const [filterByCaseTitle, setFilterByCaseTitle] = useState<CaseData[]>([]);
+  const [filterBySuspectName, setFilterBySuspectName] = useState<CaseData[]>(
+    []
+  );
+  const [filterBySuspectCourse, setFilterBySuspectCourse] = useState<
+    CaseData[]
+  >([]);
+  const [filterBySuspectYear, setFilterBySuspectYear] = useState<CaseData[]>(
+    []
+  );
+
+  useEffect(() => {}, []);
 
   useEffect(() => {
-    getAllCaseSuspects().then((response) => {
-      setAllSuspects(response);
+    getAllCasesId().then((data) => {
+      setCasesId(data);
+    });
+    getAllCases().then((data) => {
+      setCases(data);
     });
   }, []);
 
-  useEffect(() => {
-    setFilteredSuspects(
-      allSuspects.filter(
-        (suspect) =>
-          suspect.case_id.case_title
-            .toLowerCase()
-            .includes(search.toLowerCase()) ||
-          suspect.student_id.student_course
-            .toLowerCase()
-            .includes(search.toLowerCase())
-      )
-    );
-  }, [allSuspects, search]);
-
-  console.log(allSuspects);
+  const navigate = useNavigate();
 
   return (
     <>
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col w-full gap-4">
         <div className="mb-4">
           <h1 className="text-2xl font-bold">Cases with Match</h1>
           <p className="text-sm text-muted-foreground">
@@ -118,46 +98,88 @@ function CaseSuspects() {
           />
         </div>
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-          {filteredSuspects.map((suspect) => (
-            <Card key={suspect.case_suspects_id}>
-              <CardHeader>
-                <CardTitle>{suspect.case_id.case_title}</CardTitle>
-                <p>Status: {suspect.case_id.case_status}</p>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  Location: {suspect.case_id.case_location}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Date:{" "}
-                  {new Date(suspect.case_id.case_date_time).toDateString()}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Description: {suspect.case_id.case_description}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  <Button
-                    variant="link"
-                    className="-ml-4"
-                    onClick={() => {
-                      window.open(suspect.case_id.case_evidence, "_blank");
-                    }}
-                  >
-                    View Evidence{" "}
-                    <span>
-                      <SquareArrowOutUpRightIcon className="w-4 h-4 ml-2" />
-                    </span>
-                  </Button>
-                </p>
-              </CardContent>
-              <CardFooter>
-                <h1 className="text-sm">Case Suspects</h1>
-                <p className="text-sm text-muted-foreground">
-                  Student: {suspect.student_id.student_name}
-                </p>
-              </CardFooter>
-            </Card>
-          ))}
+          {casesId.map((c) => {
+            return (
+              <Card>
+                <CardHeader>
+                  <div>
+                    <h1 className="text-lg font-bold">{c.case_title}</h1>
+                    <Button
+                      onClick={() =>
+                        navigate({
+                          to: `/cases/view/${c.case_id}`,
+                          params: { caseid: c.case_id.toString() },
+                        })
+                      }
+                      variant="link"
+                      className="-ml-4"
+                    >
+                      View Case{" "}
+                      <span>
+                        <SquareArrowUpRightIcon className="w-4 h-4 ml-2" />
+                      </span>
+                    </Button>
+                  </div>
+                  <p className="text-sm">
+                    {c.case_location +
+                      " at " +
+                      new Date(c.case_date_time).toLocaleDateString("en-US", {
+                        weekday: "long",
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {c.case_description}
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <Accordion type="single" collapsible>
+                    <AccordionItem value="item-1">
+                      <AccordionTrigger>
+                        <h1 className="text-sm">Case Suspects</h1>
+                      </AccordionTrigger>
+                      <AccordionContent className="flex flex-col gap-2">
+                        {cases
+                          .filter((e) => e.case_id === c.case_id)
+                          .map((s) => {
+                            return (
+                              <Card key={s.case_suspects_id}>
+                                <CardHeader>
+                                  <CardTitle className="text-sm">
+                                    {s.student_name +
+                                      " " +
+                                      s.student_middle_name +
+                                      " " +
+                                      s.student_family_name}
+                                  </CardTitle>
+                                  <p>
+                                    {s.student_year + " " + s.student_course}
+                                  </p>
+                                </CardHeader>
+                                <CardContent className="-mt-2">
+                                  <Badge
+                                    variant={
+                                      s.suspect_result_confidence > 20
+                                        ? "destructive"
+                                        : "outline"
+                                    }
+                                  >
+                                    Confidence:{" "}
+                                    {s.suspect_result_confidence.toFixed(2)}
+                                  </Badge>
+                                </CardContent>
+                              </Card>
+                            );
+                          })}
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       </div>
     </>
